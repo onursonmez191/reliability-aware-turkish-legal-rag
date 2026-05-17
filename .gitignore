@@ -1,0 +1,36 @@
+.DS_Store
+
+# Python and local environments
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+.env
+.env.*
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Large or generated project artifacts
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/evaluation/*
+!data/evaluation/.gitkeep
+evaluation/results/*
+!evaluation/results/.gitkeep
+models/
+artifacts/
+outputs/
+vectorstores/
+*.faiss
+*.index
+*.sqlite
+*.sqlite3
+*.parquet
+*.pkl
+*.pickle
