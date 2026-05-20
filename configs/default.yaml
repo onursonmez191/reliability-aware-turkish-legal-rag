@@ -1,0 +1,44 @@
+paths:
+  raw_dir: data/raw
+  processed_dir: data/processed
+  passages_file: data/processed/passages.jsonl
+  heldout_file: data/processed/heldout.jsonl
+  faiss_index: data/processed/faiss.index
+  passage_meta: data/processed/passage_meta.jsonl
+  preprocessing_report: data/processed/preprocessing_report.md
+  eval_dir: evaluation/results
+
+data:
+  dataset_name: OrionCAF/turkish_law_qa_dataset
+  dataset_split: train
+  min_answer_chars: 60
+  heldout_size: 50
+  seed: 42
+
+retrieval:
+  embedding_model: intfloat/multilingual-e5-base
+  batch_size: 64
+  top_k: 5
+  rerank:
+    enabled: false
+    model: BAAI/bge-reranker-v2-m3
+    keep_top: 5
+
+generation:
+  hf_model: Qwen/Qwen2.5-7B-Instruct
+  max_new_tokens: 512
+  temperature: 0.2
+  timeout_s: 60
+
+verification:
+  hf_model: Qwen/Qwen2.5-7B-Instruct
+  max_new_tokens: 768
+  temperature: 0.0
+
+api:
+  host: 127.0.0.1
+  port: 8000
+  static_dir: app
+  cors_origins:
+    - http://localhost:8000
+    - http://127.0.0.1:8000

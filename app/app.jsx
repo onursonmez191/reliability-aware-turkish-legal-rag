@@ -406,9 +406,11 @@ function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [value, setValue] = useState("");
   const [activeQ, setActiveQ] = useState(null);
+  const [activeAnswer, setActiveAnswer] = useState(null);
   const [busy, setBusy] = useState(false);
   const [pipelineStep, setPipelineStep] = useState(null);
   const [hoveredCite, setHoveredCite] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
 
   const mode = t.mode;
   const setMode = (m) => setTweak("mode", m);
@@ -418,24 +420,49 @@ function App() {
   const ask = async (q) => {
     setBusy(true);
     setActiveQ(null);
+    setActiveAnswer(null);
+    setErrorMsg(null);
+
     const steps = mode === "llm"
       ? ["generate"]
       : mode === "rag"
       ? ["embed", "retrieve", "rerank", "generate"]
       : ["embed", "retrieve", "rerank", "generate", "verify"];
-    for (const s of steps) {
-      setPipelineStep(s);
-      await new Promise((r) => setTimeout(r, 350));
+
+    // Visual pipeline animation while the request is in flight.
+    const animation = (async () => {
+      for (const s of steps) {
+        setPipelineStep(s);
+        await new Promise((r) => setTimeout(r, 400));
+      }
+    })();
+
+    try {
+      const mainPromise = window.postAsk({ question: q.q, mode, k });
+      const wantLlmCompare = mode === "verified" && t.showComparison;
+      const llmPromise = wantLlmCompare
+        ? window.postAsk({ question: q.q, mode: "llm", k }).catch(() => null)
+        : Promise.resolve(null);
+
+      const [mainResp, llmResp] = await Promise.all([mainPromise, llmPromise]);
+      await animation;
+
+      setPipelineStep("done");
+      setActiveQ(q);
+      setActiveAnswer(window.normalizeAnswerPayload(mainResp, llmResp));
+    } catch (err) {
+      console.error(err);
+      setErrorMsg(err.message || String(err));
+      setPipelineStep(null);
+    } finally {
+      setBusy(false);
     }
-    setPipelineStep("done");
-    setActiveQ(q);
-    setBusy(false);
   };
 
   const onAsk = () => {
     if (!value.trim()) return;
     const match = window.SAMPLE_QUESTIONS.find((s) => s.q.trim() === value.trim());
-    ask(match || window.SAMPLE_QUESTIONS[0]);
+    ask(match || { id: "custom", q: value.trim(), kind: "supported" });
   };
 
   const onPick = (s) => {
@@ -443,7 +470,7 @@ function App() {
     ask(s);
   };
 
-  const a = activeQ ? window.ANSWERS[activeQ.id] : null;
+  const a = activeAnswer;
 
   return (
     <div className={`app density-${t.density}`}>
@@ -497,6 +524,26 @@ function App() {
                 </div>
               )}
             </section>
+          ) : errorMsg ? (
+            <div
+              role="alert"
+              style={{
+                padding: "16px 20px",
+                border: "1px solid var(--bad-ring)",
+                background: "var(--bad-bg)",
+                color: "var(--bad)",
+                borderRadius: 10,
+                marginTop: 16,
+                fontSize: 14,
+                lineHeight: 1.5,
+              }}
+            >
+              <b>Backend hatası:</b> {errorMsg}
+              <div style={{ marginTop: 8, opacity: 0.85 }}>
+                <code>scripts/build_index.py</code> ile indeksi oluşturduğunuzu ve
+                <code> scripts/serve.py</code> ile sunucunun çalıştığını doğrulayın.
+              </div>
+            </div>
           ) : (
             <EmptyState/>
           )}

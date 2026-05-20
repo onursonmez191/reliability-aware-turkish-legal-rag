@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rag_turkish_law"
+version = "0.1.0"
+description = "Reliability-Aware RAG for Turkish Legal QA (CS455 project)"
+requires-python = ">=3.10"
+readme = "README.md"
+license = { text = "Educational use" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"*" = ["*.yaml", "*.yml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra -q"
