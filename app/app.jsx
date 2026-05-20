@@ -217,8 +217,8 @@ const Answer = ({ text, onCite, mode, hovered, setHovered }) => {
 // ---------- verdict card ----------
 
 const VerdictCard = ({ v, mode }) => {
-  if (mode !== "verified") return null;
-  const t = VERDICT_THEME[v.key];
+  if (mode !== "verified" || !v) return null;
+  const t = VERDICT_THEME[v.key] || VERDICT_THEME.partial;
   const supportedCount = v.claims.filter((c) => c.status === "supported").length;
   return (
     <section className="card verdict-card" style={{ "--vc": t.color, "--vbg": t.bg, "--vring": t.ring }} data-screen-label="Verdict">
@@ -413,7 +413,13 @@ function App() {
   const [errorMsg, setErrorMsg] = useState(null);
 
   const mode = t.mode;
-  const setMode = (m) => setTweak("mode", m);
+  const setMode = (m) => {
+    setTweak("mode", m);
+    setActiveAnswer(null);
+    setActiveQ(null);
+    setPipelineStep(null);
+    setErrorMsg(null);
+  };
   const k = t.topK;
   const setK = (n) => setTweak("topK", n);
 
@@ -550,7 +556,7 @@ function App() {
         </div>
 
         <aside className="col col-side">
-          {a && mode === "verified" && <VerdictCard v={a.verdict} mode={mode}/>}
+          {a && mode === "verified" && a.verdict && <VerdictCard v={a.verdict} mode={mode}/>}
           {a && mode !== "llm" && (
             <Sources items={a.sources} hovered={hoveredCite} setHovered={setHoveredCite} k={k}/>
           )}

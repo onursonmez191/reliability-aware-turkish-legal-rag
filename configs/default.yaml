@@ -25,13 +25,15 @@ retrieval:
     keep_top: 5
 
 generation:
-  hf_model: Qwen/Qwen2.5-7B-Instruct
+  provider: ollama  # ollama | hf
+  base_url: http://127.0.0.1:11434/v1
+  hf_model: qwen2.5:7b-instruct
   max_new_tokens: 512
   temperature: 0.2
-  timeout_s: 60
+  timeout_s: 180
 
 verification:
-  hf_model: Qwen/Qwen2.5-7B-Instruct
+  hf_model: qwen2.5:7b-instruct
   max_new_tokens: 768
   temperature: 0.0
 

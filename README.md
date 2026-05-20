@@ -4,7 +4,7 @@ CS 455 LLM course project. A Turkish legal question-answering RAG system with:
 
 - corpus preparation from the public `OrionCAF/turkish_law_qa_dataset`
 - multilingual sentence embeddings + a FAISS index
-- source-grounded answer generation through the Hugging Face Inference API
+- source-grounded answer generation through a local Ollama server (default) or the Hugging Face Inference API
 - a verifier layer that labels each claim as `supported / partial / unsupported / insufficient / risk`
 - a React demo UI (in `app/`) wired to a FastAPI backend
 - evaluation scaffolding for Recall@k, MRR, manual rubric, and verifier metrics
@@ -47,14 +47,55 @@ tests/                       pytest sanity tests for the data, prompts, and veri
 
 ```bash
 python -m venv .venv
-. .venv/Scripts/activate            # PowerShell: .\.venv\Scripts\Activate.ps1
+. .venv/bin/activate                # PowerShell: .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 pip install -e .                    # makes `rag_turkish_law` importable
-cp .env.example .env                # then edit HF_API_TOKEN
+cp .env.example .env                # only needed if you use HF_API_TOKEN
 ```
 
-`HF_API_TOKEN` is required for generation/verification. Free Hugging Face
-account tokens (read-scope) are sufficient.
+GPU is optional but recommended. If you have an NVIDIA GPU with current
+drivers, install a matching PyTorch wheel (e.g. CUDA 12.4):
+
+```bash
+pip install --index-url https://download.pytorch.org/whl/cu124 torch
+```
+
+### LLM backend (default: local Ollama)
+
+The default config talks to a local [Ollama](https://ollama.com) server
+on `http://127.0.0.1:11434`. This avoids HF Inference API rate limits and
+keeps the demo reproducible.
+
+Install Ollama (no sudo, user-level tarball):
+
+```bash
+mkdir -p ~/ollama-dist && cd ~/ollama-dist
+curl -fLO https://github.com/ollama/ollama/releases/latest/download/ollama-linux-amd64.tar.zst
+zstd -d --rm ollama-linux-amd64.tar.zst -o ollama.tar
+tar -xf ollama.tar && rm ollama.tar
+mkdir -p ~/.local/bin && ln -sf ~/ollama-dist/bin/ollama ~/.local/bin/ollama
+# add ~/.local/bin to PATH if it isn't already
+```
+
+Start the daemon in the background and pull the default model:
+
+```bash
+nohup ollama serve > /tmp/ollama.log 2>&1 &
+ollama pull qwen2.5:7b-instruct       # ~4.7 GB Q4_K_M, fits in 6 GB VRAM
+```
+
+Smaller / faster alternatives (override in [configs/default.yaml](configs/default.yaml)
+under `generation.hf_model`):
+
+- `qwen2.5:3b-instruct` — ~2 GB, ~2× faster, slightly weaker Turkish
+- `llama3.1:8b-instruct-q4_K_M` — comparable size, alternative family
+
+### Falling back to Hugging Face Inference API
+
+Set `generation.provider: hf` in [configs/default.yaml](configs/default.yaml)
+and put `HF_API_TOKEN=hf_...` in `.env`. The HF tier is noisier and
+often slow for verifier-style multi-call workloads, so Ollama is the
+recommended default.
 
 ## Build the index
 
@@ -102,6 +143,29 @@ python scripts/run_eval.py --ablation rerank     # rerank on vs off
 
 Results land in `evaluation/results/`.
 
+### Current numbers (50 held-out items, `intfloat/multilingual-e5-base`)
+
+| Metric    | Value |
+| --------- | ----- |
+| Recall@3  | 1.00  |
+| Recall@5  | 1.00  |
+| MRR       | 0.98  |
+
+Top-k ablation (Recall@3 / Recall@5 / MRR are identical because the gold
+passage is essentially always rank-1):
+
+| top_k | Recall@3 | Recall@5 | MRR  |
+| ----- | -------- | -------- | ---- |
+| 3     | 1.00     | 1.00     | 0.98 |
+| 5     | 1.00     | 1.00     | 0.98 |
+| 8     | 1.00     | 1.00     | 0.98 |
+
+Caveat: the held-out questions are derived from each passage's title, so
+this measures retrieval *floor*. Stress-testing with paraphrased queries
+or the adversarial set in
+[src/rag_turkish_law/evaluation/eval_set.py](src/rag_turkish_law/evaluation/eval_set.py)
+is left to the answer rubric / verifier metrics stages.
+
 ## Tests
 
 ```bash
@@ -119,7 +183,9 @@ at a different file. Common knobs:
 - `retrieval.embedding_model` — swap to `paraphrase-multilingual-MiniLM-L12-v2` for ablation
 - `retrieval.top_k` — default 5
 - `retrieval.rerank.enabled` — turn on cross-encoder reranking
-- `generation.hf_model` — any HF Inference API model id
+- `generation.provider` — `ollama` (default) or `hf`
+- `generation.base_url` — Ollama endpoint (only used when `provider: ollama`)
+- `generation.hf_model` — Ollama model tag (e.g. `qwen2.5:7b-instruct`) or HF model id depending on provider
 - `data.min_answer_chars` / `data.heldout_size` — preprocessing thresholds
 
 ## Notes on safety
