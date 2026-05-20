@@ -28,7 +28,7 @@ React UI → FastAPI backend → (retrieval → generation → verification).
   ablation.
 
 ### 2.4 Generation
-- Hugging Face Inference API client.
+- Local Ollama by default, with Hugging Face Inference API as a fallback.
 - System prompt enforces source-only answers, `[n]` citations, refusal on
   insufficient context, and bans case-specific legal advice.
 - LLM-only baseline uses the same model with no source block.

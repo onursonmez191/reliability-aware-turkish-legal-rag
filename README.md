@@ -46,11 +46,11 @@ tests/                       pytest sanity tests for the data, prompts, and veri
 ## Setup
 
 ```bash
-python -m venv .venv
+python3.10 -m venv .venv               # Python 3.10 or 3.11 recommended
 . .venv/bin/activate                # PowerShell: .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 pip install -e .                    # makes `rag_turkish_law` importable
-cp .env.example .env                # only needed if you use HF_API_TOKEN
+cp .env.example .env                # optional, only needed for HF_API_TOKEN/RAG_CONFIG
 ```
 
 GPU is optional but recommended. If you have an NVIDIA GPU with current
@@ -66,21 +66,28 @@ The default config talks to a local [Ollama](https://ollama.com) server
 on `http://127.0.0.1:11434`. This avoids HF Inference API rate limits and
 keeps the demo reproducible.
 
-Install Ollama (no sudo, user-level tarball):
+Install Ollama using the official installer or your package manager. On macOS
+with Homebrew:
 
 ```bash
-mkdir -p ~/ollama-dist && cd ~/ollama-dist
-curl -fLO https://github.com/ollama/ollama/releases/latest/download/ollama-linux-amd64.tar.zst
-zstd -d --rm ollama-linux-amd64.tar.zst -o ollama.tar
-tar -xf ollama.tar && rm ollama.tar
-mkdir -p ~/.local/bin && ln -sf ~/ollama-dist/bin/ollama ~/.local/bin/ollama
-# add ~/.local/bin to PATH if it isn't already
+brew install ollama
 ```
 
-Start the daemon in the background and pull the default model:
+On Linux, the official installer is usually the simplest option:
 
 ```bash
-nohup ollama serve > /tmp/ollama.log 2>&1 &
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+Start Ollama and pull the default model:
+
+```bash
+ollama serve
+```
+
+In another terminal:
+
+```bash
 ollama pull qwen2.5:7b-instruct       # ~4.7 GB Q4_K_M, fits in 6 GB VRAM
 ```
 
@@ -143,28 +150,16 @@ python scripts/run_eval.py --ablation rerank     # rerank on vs off
 
 Results land in `evaluation/results/`.
 
-### Current numbers (50 held-out items, `intfloat/multilingual-e5-base`)
+### Interpreting retrieval numbers
 
-| Metric    | Value |
-| --------- | ----- |
-| Recall@3  | 1.00  |
-| Recall@5  | 1.00  |
-| MRR       | 0.98  |
+The script-generated held-out set is useful as a smoke test, but it should not
+be treated as the final evaluation because its questions are derived from the
+dataset itself. Final reported numbers should include a manually written set
+with paraphrased, ambiguous, unsupported, and legal-advice-risk questions.
 
-Top-k ablation (Recall@3 / Recall@5 / MRR are identical because the gold
-passage is essentially always rank-1):
-
-| top_k | Recall@3 | Recall@5 | MRR  |
-| ----- | -------- | -------- | ---- |
-| 3     | 1.00     | 1.00     | 0.98 |
-| 5     | 1.00     | 1.00     | 0.98 |
-| 8     | 1.00     | 1.00     | 0.98 |
-
-Caveat: the held-out questions are derived from each passage's title, so
-this measures retrieval *floor*. Stress-testing with paraphrased queries
-or the adversarial set in
-[src/rag_turkish_law/evaluation/eval_set.py](src/rag_turkish_law/evaluation/eval_set.py)
-is left to the answer rubric / verifier metrics stages.
+Use the notebooks in `notebooks/` for exploratory checks, and use
+`scripts/run_eval.py` for reproducible metrics once the evaluation set is
+stable.
 
 ## Tests
 
