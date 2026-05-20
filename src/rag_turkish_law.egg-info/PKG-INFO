@@ -1,3 +1,11 @@
+Metadata-Version: 2.4
+Name: rag_turkish_law
+Version: 0.1.0
+Summary: Reliability-Aware RAG for Turkish Legal QA (CS455 project)
+License: Educational use
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+
 # Reliability-Aware RAG for Turkish Legal QA
 
 CS 455 LLM course project. A Turkish legal question-answering RAG system with:
