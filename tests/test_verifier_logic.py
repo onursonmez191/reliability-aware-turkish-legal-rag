@@ -15,6 +15,22 @@ def test_split_into_claims_keeps_citations_on_the_right_sentence():
     assert "[1]" not in claims[0].text_without_citations()
 
 
+def test_split_into_claims_does_not_split_legal_article_abbreviation():
+    text = (
+        "Türk Borçlar Kanunu m. 67 uyarınca, hayvan bulunduran zararı gidermekle "
+        "yükümlüdür [1]. Ancak gerekli özeni gösterdiğini ispat ederse sorumlu "
+        "tutulmaz [1]."
+    )
+
+    claims = split_into_claims(text)
+
+    assert len(claims) == 2
+    assert claims[0].text.startswith("Türk Borçlar Kanunu m. 67")
+    assert claims[0].text_without_citations().endswith("yükümlüdür.")
+    assert claims[0].cited == [1]
+    assert claims[1].cited == [1]
+
+
 def test_risk_pattern_catches_money_and_imperatives():
     assert is_case_specific_advice("50.000 TL tazminat alabilirsiniz.")
     assert is_case_specific_advice("Hemen dava açın.")
