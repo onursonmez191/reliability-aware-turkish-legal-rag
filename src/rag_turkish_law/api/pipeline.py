@@ -66,10 +66,15 @@ def run_pipeline(
 
     hits = _timed("retrieve", lambda: retrieve(question, k=k), timings)
 
+    # Assess coverage on the bi-encoder retrieval scores. The cross-encoder
+    # reranker emits scores on a different scale (0-1 relevance) that are not
+    # comparable to the confidence thresholds, so it must not feed the gate —
+    # rerank only reorders the passages retrieval already found.
+    confidence = _timed("confidence", lambda: assess_retrieval_confidence(hits), timings)
+
     if cfg.retrieval.rerank.enabled:
         hits = _timed("rerank", lambda: rerank(question, hits), timings)
 
-    confidence = _timed("confidence", lambda: assess_retrieval_confidence(hits), timings)
     if confidence.label == "low":
         answer = (
             "Mevcut kaynaklar bu soruyu yeterince kapsamıyor. "
@@ -198,6 +203,10 @@ def run_pipeline_stream(
     yield _event("step", {"id": "retrieve"})
     hits = _timed("retrieve", lambda: retrieve(question, k=k), timings)
 
+    # Coverage gate runs on the bi-encoder scores, before the cross-encoder
+    # reranker rescales them (see run_pipeline for the rationale).
+    confidence = _timed("confidence", lambda: assess_retrieval_confidence(hits), timings)
+
     if cfg.retrieval.rerank.enabled:
         yield _event("step", {"id": "rerank"})
         hits = _timed("rerank", lambda: rerank(question, hits), timings)
@@ -206,7 +215,6 @@ def run_pipeline_stream(
     yield _event("sources", {"sources": [s.model_dump() for s in sources]})
 
     yield _event("step", {"id": "confidence"})
-    confidence = _timed("confidence", lambda: assess_retrieval_confidence(hits), timings)
     if confidence.label == "low":
         answer = (
             "Mevcut kaynaklar bu soruyu yeterince kapsamıyor. "

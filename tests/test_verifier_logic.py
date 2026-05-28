@@ -103,3 +103,35 @@ def test_verify_answer_downgrades_when_sources_do_not_match_citations(monkeypatc
     assert verdicts[0].status == "partial"
     assert verdicts[0].source_ids == [2]
     assert verdicts[0].cited == [1]
+
+
+def test_verify_answer_keeps_supported_when_grounded_without_inline_citation(monkeypatch):
+    """A missing inline [n] must not downgrade a claim the verifier grounded."""
+
+    def fake_chat(*_args, **_kwargs):
+        return '{"verdicts":[{"index":1,"status":"supported","source_ids":[1],"reason":"ok"}]}'
+
+    monkeypatch.setattr("rag_turkish_law.verification.verify.client.chat", fake_chat)
+
+    verdicts = verify_answer(
+        "Hayvan bulunduran, hayvanın verdiği zararı gidermekle yükümlüdür.",
+        [{"text": "kaynak 1"}, {"text": "kaynak 2"}],
+    )
+
+    assert verdicts[0].status == "supported"
+    assert verdicts[0].cited == []
+    assert verdicts[0].source_ids == [1]
+
+
+def test_verify_answer_downgrades_when_verifier_finds_no_source(monkeypatch):
+    """An empty source_ids list means the verifier could not ground the claim."""
+
+    def fake_chat(*_args, **_kwargs):
+        return '{"verdicts":[{"index":1,"status":"supported","source_ids":[],"reason":"yok"}]}'
+
+    monkeypatch.setattr("rag_turkish_law.verification.verify.client.chat", fake_chat)
+
+    verdicts = verify_answer("Bu iddia desteklenir [1].", [{"text": "kaynak 1"}])
+
+    assert verdicts[0].status == "partial"
+    assert verdicts[0].source_ids == []

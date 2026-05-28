@@ -20,51 +20,48 @@ data:
     dataset_name: muhammetakkurt/mevzuat-gov-dataset
     dataset_split: train
     min_article_chars: 40
-    # Start small and verify retrieval before widening. Empty list = all laws.
+    # Full core-code coverage for the big run.
     include_law_numbers:
       - "6098"   # Türk Borçlar Kanunu
       - "4721"   # Türk Medeni Kanunu
-      # - "4857"   # İş Kanunu
-      # - "5237"   # Türk Ceza Kanunu
+      - "4857"   # İş Kanunu
+      - "5237"   # Türk Ceza Kanunu
 
 retrieval:
-  embedding_model: intfloat/multilingual-e5-base
-  batch_size: 64
+  embedding_model: intfloat/multilingual-e5-large   # upgraded from e5-base
+  batch_size: 128
   top_k: 8
   query_expansion:
     enabled: true
   rerank:
-    enabled: false
+    enabled: true                                    # cross-encoder reranking on
     model: BAAI/bge-reranker-v2-m3
-    candidate_k: 20
-    keep_top: 5
+    candidate_k: 30
+    keep_top: 8
   confidence:
     enabled: true
     min_top_score: 0.75
     min_avg_top3_score: 0.70
 
 generation:
-  provider: ollama  # ollama | hf
+  provider: ollama
   base_url: http://127.0.0.1:11434/v1
-  hf_model: qwen2.5:7b-instruct
+  hf_model: qwen3.6:27b
   max_new_tokens: 512
   temperature: 0.2
-  timeout_s: 180
+  timeout_s: 300
 
 verification:
-  hf_model: qwen2.5:7b-instruct
+  hf_model: qwen3.6:27b
   max_new_tokens: 768
   temperature: 0.0
 
 models:
-  default: qwen2.5:7b-instruct
-  keep_alive: 10m
-  load_timeout_s: 600
+  default: qwen3.6:27b
+  keep_alive: 30m
+  load_timeout_s: 900
   unload_timeout_s: 30
   available:
-    - name: qwen2.5:7b-instruct
-      label: Qwen 2.5 7B
-      note: lightweight baseline
     - name: qwen3.6:27b
       label: Qwen 3.6 27B
       note: dense reasoning model
@@ -73,7 +70,7 @@ models:
       note: dense multilingual model
 
 api:
-  host: 127.0.0.1
+  host: 0.0.0.0
   port: 8000
   static_dir: app
   cors_origins:

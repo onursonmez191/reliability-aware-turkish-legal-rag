@@ -1,0 +1,309 @@
+{
+  "n_scored": 50,
+  "k": 5,
+  "recall@3": 1.0,
+  "recall@5": 1.0,
+  "mrr": 0.98,
+  "per_question": [
+    {
+      "qid": "H-008130",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-009797",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-015432",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-007666",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-007285",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-010014",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-004173",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-006404",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-005023",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-016800",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-004579",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-015601",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-012370",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-002251",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 0.5
+    },
+    {
+      "qid": "H-011302",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-012781",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-000283",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-017314",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-000608",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-014698",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-008636",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-012610",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-011730",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-002558",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-007134",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-006420",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-016336",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-014958",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-017869",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-017815",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-004292",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-004284",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-005663",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-013669",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-012982",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-006832",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-011533",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-006372",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-010216",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-012226",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-000167",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-003408",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-004791",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 0.5
+    },
+    {
+      "qid": "H-006281",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-004424",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-010372",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-000248",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-001288",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-002074",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "H-004396",
+      "recall@3": 1,
+      "recall@5": 1,
+      "rr": 1.0
+    }
+  ]
+}

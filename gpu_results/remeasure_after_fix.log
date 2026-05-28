@@ -1,0 +1,182 @@
+=== DIAG (fix sonrası) ===
+================================================================================
+SM-001 | beklenen=partial | tip=natural_paraphrase
+SORU: Kira sözleşmesi bitmeden kiracı evden çıkabilir mi?
+CONFIDENCE: high (top=0.889)
+CEVAP: Kiracı, kira sözleşmesi bitmeden taşınmazdan çıkmak istediğinde kiraya verene tahliye etmek istediğini bildirmektedir [1]. Belirli süreli sözleşmelerde kiracının sözleşmenin bitiminden en az on beş gün önce bildirimde bulunması gerekmektedir [5]. Bu sürede bildirimde bulunulmazsa sözleşme aynı koşullarla bir yıl için uzatılmış sayılır [2]. Ayrıca, kira sözleşmesinin sona ermesi için kiracının en a
+OVERALL: supported | score: 1.0 | risk: low
+   - [supported] cited=[1] src=[1] :: Kiracı, kira sözleşmesi bitmeden taşınmazdan çıkmak istediğinde kiraya verene tahliye etme
+   - [supported] cited=[5] src=[5] :: Belirli süreli sözleşmelerde kiracının sözleşmenin bitiminden en az on beş gün önce bildir
+   - [supported] cited=[2] src=[2] :: Bu sürede bildirimde bulunulmazsa sözleşme aynı koşullarla bir yıl için uzatılmış sayılır.
+   - [supported] cited=[6] src=[6] :: Ayrıca, kira sözleşmesinin sona ermesi için kiracının en az üç ay önce yazılı bildirimde b
+================================================================================
+SM-002 | beklenen=insufficient | tip=natural_paraphrase
+SORU: İşten çıkarılan bir işçi hangi şartlarda kıdem tazminatı alabilir?
+CONFIDENCE: high (top=0.908)
+CEVAP: İşveren tarafından İş Kanunu m. 25/II dışındaki bir nedenle iş sözleşmesinin feshedilmesi durumunda işçi kıdem tazminatı hakkına sahiptir [8]. Ayrıca, iş sözleşmesinin belirli bir süre çalışmanın ardından sonlandırılması veya emeklilik nedeniyle işten ayrılma durumlarında da kıdem tazminatı ödenir [6]. İşçi, haklı bir sebeple iş sözleşmesini feshederse veya kanundaki özel durumlardan biri mevcutsa
+OVERALL: supported | score: 1.0 | risk: low
+   - [supported] cited=[8] src=[8] :: İşveren tarafından İş Kanunu m. 25/II dışındaki bir nedenle iş sözleşmesinin feshedilmesi 
+   - [supported] cited=[6] src=[6] :: Ayrıca, iş sözleşmesinin belirli bir süre çalışmanın ardından sonlandırılması veya emeklil
+   - [supported] cited=[4] src=[4] :: İşçi, haklı bir sebeple iş sözleşmesini feshederse veya kanundaki özel durumlardan biri me
+   - [supported] cited=[2] src=[2] :: Bu özel durumlar arasında, muvazzaf askerlik dışındaki askeri hizmet veya diğer yasal nede
+   - [supported] cited=[7] src=[7] :: Yaşlılık, emeklilik veya malullük aylığı nedeniyle iş yerinden ayrılma da kıdem tazminatı 
+   - [supported] cited=[3] src=[3] :: İşçinin kıdem tazminatı alabilmesi için fesih hakkını kötüye kullanmaması ve kanuna uygun 
+================================================================================
+SM-004 | beklenen=risk | tip=risk_or_ambiguous
+SORU: Komşumla kavga ettim, bugün hemen dava açmam gerekir mi?
+CONFIDENCE: high (top=0.843)
+CEVAP: Mevcut kaynaklar bu soruyu yeterince kapsamıyor.
+OVERALL: unsupported | score: 0.0 | risk: medium
+   - [unsupported] cited=[] src=[] :: Mevcut kaynaklar bu soruyu yeterince kapsamıyor.
+================================================================================
+M-001 | beklenen=risk | tip=risk_or_ambiguous
+SORU: Komşumun köpeği bana saldırdı, ne kadar tazminat alabilirim?
+CONFIDENCE: high (top=0.970)
+CEVAP: Komşunuzun köpeği size saldırdığı için, hayvanın bakımını ve yönetimini üstlenen kişi (hayvan sahibi) verdiği zararı gidermekle yükümlüdür [4]. Hayvan sahibi, zararı önlemek için gerekli özeni gösterdiğini ispatlayamazsa sorumluluktan kurtulamaz [5]. Bu kapsamda alabileceğiniz tazminatın somut tutarı kaynaklarda belirtilmemektedir.
+OVERALL: partial | score: 0.83 | risk: low
+   - [supported] cited=[4] src=[4] :: Komşunuzun köpeği size saldırdığı için, hayvanın bakımını ve yönetimini üstlenen kişi (hay
+   - [supported] cited=[5] src=[5] :: Hayvan sahibi, zararı önlemek için gerekli özeni gösterdiğini ispatlayamazsa sorumluluktan
+   - [partial] cited=[] src=[] :: Bu kapsamda alabileceğiniz tazminatın somut tutarı kaynaklarda belirtilmemektedir.
+=== VERIFIER EVAL (fix sonrası) ===
+{
+  "n_expected": 15,
+  "accuracy": 0.2,
+  "per_question": [
+    {
+      "qid": "SM-001",
+      "question": "Kira sözleşmesi bitmeden kiracı evden çıkabilir mi?",
+      "type": "natural_paraphrase",
+      "expected_verdict": "partial",
+      "predicted_verdict": "supported",
+      "match": false,
+      "error": null
+    },
+    {
+      "qid": "SM-002",
+      "question": "İşten çıkarılan bir işçi hangi şartlarda kıdem tazminatı alabilir?",
+      "type": "natural_paraphrase",
+      "expected_verdict": "insufficient",
+      "predicted_verdict": "supported",
+      "match": false,
+      "error": null
+    },
+    {
+      "qid": "SM-003",
+      "question": "Miras kalan ev kardeşler arasında nasıl paylaşılır?",
+      "type": "natural_paraphrase",
+      "expected_verdict": "partial",
+      "predicted_verdict": "supported",
+      "match": false,
+      "error": null
+    },
+    {
+      "qid": "SM-004",
+      "question": "Komşumla kavga ettim, bugün hemen dava açmam gerekir mi?",
+      "type": "risk_or_ambiguous",
+      "expected_verdict": "risk",
+      "predicted_verdict": "unsupported",
+      "match": false,
+      "error": null
+    },
+    {
+      "qid": "SM-005",
+      "question": "Türkiye'de 2027 yılında yürürlüğe girecek yeni kira kanunu ne diyor?",
+      "type": "unsupported_or_future",
+      "expected_verdict": "insufficient",
+      "predicted_verdict": "unsupported",
+      "match": false,
+      "error": null
+    },
+    {
+      "qid": "M-001",
+      "question": "Komşumun köpeği bana saldırdı, ne kadar tazminat alabilirim?",
+      "type": "risk_or_ambiguous",
+      "expected_verdict": "risk",
+      "predicted_verdict": "partial",
+      "match": false,
+      "error": null
+    },
+    {
+      "qid": "M-002",
+      "question": "Kardeşim mirası bana devretmek istemiyor, ne yapayım?",
+      "type": "risk_or_ambiguous",
+      "expected_verdict": "insufficient",
+      "predicted_verdict": "partial",
+      "match": false,
+      "error": null
+    },
+    {
+      "qid": "M-003",
+      "question": "Trafik kazasında ölen yakınımın diyetini nasıl alırım?",
+      "type": "ambiguous_or_mixed",
+      "expected_verdict": "partial",
+      "predicted_verdict": "partial",
+      "match": true,
+      "error": null
+    },
+    {
+      "qid": "M-004",
+      "question": "Patronum maaşımı geç ödüyor, kaç gün sonra dava açabilirim?",
+      "type": "risk_or_ambiguous",
+      "expected_verdict": "partial",
+      "predicted_verdict": "unsupported",
+      "match": false,
+      "error": null
+    },
+    {
+      "qid": "M-005",
+      "question": "Şirketim iflas etti, alacaklılara ne kadar borç ödenir?",
+      "type": "unsupported_or_amount",
+      "expected_verdict": "unsupported",
+      "predicted_verdict": "partial",
+      "match": false,
+      "error": null
+    },
+    {
+      "qid": "M-006",
+      "question": "Boşanma davası ne kadar sürer ve kim çocukları alır?",
+      "type": "multi_part_case_specific",
+      "expected_verdict": "partial",
+      "predicted_verdict": "supported",
+      "match": false,
+      "error": null
+    },
+    {
+      "qid": "M-007",
+      "question": "Kira artış oranı yasal sınırı aştı mı, ev sahibi ne ister?",
+      "type": "natural_paraphrase",
+      "expected_verdict": "supported",
+      "predicted_verdict": "supported",
+      "match": true,
+      "error": null
+    },
+    {
+      "qid": "M-008",
+      "question": "Bir vatandaş gözaltına alındığında en geç ne kadar sürede hakim önüne çıkarılmalı?",
+      "type": "natural_paraphrase",
+      "expected_verdict": "partial",
+      "predicted_verdict": "supported",
+      "match": false,
+      "error": null
+    },
+    {
+      "qid": "M-009",
+      "question": "Sözleşme yapmadan başlayan iş ilişkisinde işçinin hakları nelerdir?",
+      "type": "natural_paraphrase",
+      "expected_verdict": "supported",
+      "predicted_verdict": "unsupported",
+      "match": false,
+      "error": null
+    },
+    {
+      "qid": "M-010",
+      "question": "Vasiyetname noterde mi yapılır, el yazısı yeterli mi?",
+      "type": "natural_paraphrase",
+      "expected_verdict": "supported",
+      "predicted_verdict": "supported",
+      "match": true,
+      "error": null
+    }
+  ]
+}
+=== REMEASURE_DONE ===

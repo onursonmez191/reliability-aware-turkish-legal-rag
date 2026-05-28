@@ -104,14 +104,19 @@ def _coerce_verdict(claim: Claim, parsed: dict | None, *, num_sources: int) -> C
     reason = str(parsed.get("reason", ""))[:300]
     if status in {"supported", "partial"}:
         if not source_ids:
+            # The verifier itself found no supporting passage → genuinely ungrounded.
             status = _downgrade_for_citation_mismatch(status)
-            reason = (reason + " Kaynak iddiası doğrulanamadı.").strip()
+            reason = (reason + " Doğrulayıcı destekleyici kaynak bulamadı.").strip()
+        elif claim.cited and not set(source_ids).intersection(claim.cited):
+            # The answer cited sources, but none of them are the ones that
+            # actually support the claim → citation-accuracy problem.
+            status = _downgrade_for_citation_mismatch(status)
+            reason = (reason + " Cevaptaki atıflar doğrulayıcı kaynaklarla örtüşmüyor.").strip()
         elif not claim.cited:
-            status = _downgrade_for_citation_mismatch(status)
-            reason = (reason + " Cevapta kaynak numarası yok.").strip()
-        elif not set(source_ids).intersection(claim.cited):
-            status = _downgrade_for_citation_mismatch(status)
-            reason = (reason + " Doğrulayıcı kaynakları cevapta verilen atıflarla örtüşmüyor.").strip()
+            # The answer omitted an inline [n] marker, but the verifier still
+            # grounded the claim in valid sources. A missing citation is a
+            # hygiene issue, not an ungrounding — keep the status, just note it.
+            reason = (reason + " (Cevapta kaynak no. yok; doğrulayıcı kaynakla eşleşti.)").strip()
 
     return ClaimVerdict(
         text=claim.text_without_citations(),

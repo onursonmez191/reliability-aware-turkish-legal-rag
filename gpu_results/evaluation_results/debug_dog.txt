@@ -1,0 +1,70 @@
+QUESTION
+Köpeğim birine zarar verirse tazminatı kimden isterim?
+
+RETRIEVAL QUERIES
+1. Köpeğim birine zarar verirse tazminatı kimden isterim?
+
+CORPUS TERM COVERAGE
+- processed passages with target terms: 847 / 20028
+  - P-000057: İyi niyetli zilyetlerin geri verme yükümlülükleri nelerdir? | terms=['tazminat']
+  - P-000058: İyi niyetli olmayan zilyetlerin sorumlulukları nelerdir? | terms=['tazminat']
+  - P-000218: Teminat yükünün kapsamı neleri içerir ve bu kapsamın önemi nedir? | terms=['tazminat']
+  - P-000459: Haksız tutuklama durumunda, kişinin devlete karşı hangi hakları bulunmaktadır ve bu haklar hangi kanun maddesinde düzenl | terms=['tazminat']
+  - P-000460: Tutuklama nedeniyle tazminat davası açmak için hangi süreler dikkate alınmalıdır? | terms=['tazminat']
+  - P-000461: Tazminat isteminde bulunan kişinin dilekçesinde hangi bilgilerin yer alması gerekmektedir? | terms=['tazminat']
+  - P-000462: Hangi durumlarda kişiler tazminat talep edememektedir ve bu durumlar hangi kanun maddesinde belirtilmiştir? | terms=['tazminat']
+  - P-000463: Tazminatın geri alınması durumu hangi koşullarda gerçekleşir ve bu süreçte hangi merciden karar alınması gerekmektedir? | terms=['tazminat']
+  - P-000683: Maddi ve manevi zarara uğrayan kişiler, sürücüden tazminat talep etmek için hangi hukuki yolları izleyebilirler? | terms=['tazminat']
+  - P-000684: Sürücünün mahkemece hükmedilecek tazminatı ödemesi gerekliliği hangi durumlarda ortaya çıkar? | terms=['tazminat']
+  - P-000713: Ehliyetsiz araç kullanırken bir kazaya karışılması durumunda ne gibi sonuçlar doğabilir? | terms=['tazminat']
+  - P-000749: Ehliyetsiz sürücünün kaza yapması durumunda tazminat yükümlülüğü nasıl belirlenmektedir? | terms=['tazminat']
+  - P-000750: Kusursuz olan sürücüler, ehliyet durumuna bakılmaksızın hangi haklara sahiptir? | terms=['tazminat']
+  - P-000751: Ehliyetsiz sürücünün kazada kusuru bulunmaması durumunda tazminat yükümlülüğü nasıl etkilenir? | terms=['tazminat']
+  - P-000752: Ehliyetsiz kaza yapan sürücünün kusurlu olduğu durumlarda, diğer sürücünün sigorta şirketine başvurması durumunda ne olu | terms=['tazminat']
+  - P-000754: Sigorta şirketinin, ehliyetsiz sürücünün kusurlu olduğu durumlarda tazminatla ilgili ne gibi bir hakkı vardır? | terms=['tazminat']
+  - P-001099: İftira suçuna uğrayan bir kişinin manevi tazminat talep etme hakkı hangi durumlarda geçerlidir? | terms=['tazminat']
+  - P-001100: Manevi tazminat talebinde bulunmanın gerekçeleri nelerdir? | terms=['tazminat']
+  - P-001102: Maddi tazminat talep etme hakkı hangi koşullarda doğar? | terms=['tazminat']
+  - P-001103: Maddi ve manevi tazminat taleplerinde hangi mahkeme yetkilidir? | terms=['tazminat']
+- curated passages with target terms: 1 / 1
+  - CUR-TBK-067: Türk Borçlar Kanunu m. 67 - Hayvan bulunduranın sorumluluğu | terms=['hayvan bulunduran', 'hayvanın verdiği zarar']
+
+CONFIDENCE
+- label=high
+- top_score=0.8553
+- avg_top3_score=0.8495
+- reason=top and average retrieval scores passed thresholds
+
+TOP HITS
+1. LAW-6098-M377 score=0.8553 tag=Kanun Maddesi
+   title=TÜRK BORÇLAR KANUNU - Madde 377
+   matched_terms=['tazminat']
+   snippet=Aksine anlaşma veya yerel âdet yoksa kiracı, kiralanan hayvanların uğradığı bir zarardan, bu zararın, korumada dikkat ve özen gösterildiği hâlde meydana gelmiş olduğunu ispat etmedikçe sorumludur. Kiracı, kendi kusuruyla sebebiyet vermediği olağanüstü koruma g
+2. CUR-TBK-067 score=0.8518 tag=Curated Turkish Law
+   title=Türk Borçlar Kanunu m. 67 - Hayvan bulunduranın sorumluluğu
+   matched_terms=['hayvan bulunduran', 'hayvanın verdiği zarar']
+   snippet=Türk Borçlar Kanunu m. 67 kapsamında, bir hayvanın bakımını ve yönetimini sürekli veya geçici olarak üstlenen kişi hayvanın verdiği zararı gidermekle yükümlüdür. Gerekli özeni gösterdiğini ispat ederse sorumlu olmaz; hayvan başkası tarafından ürkütülmüşse rücu
+3. LAW-6098-M67 score=0.8415 tag=Kanun Maddesi
+   title=TÜRK BORÇLAR KANUNU - Madde 67
+   matched_terms=['hayvan bulunduran', 'hayvanın verdiği zarar']
+   snippet=Bir hayvanın bakımını ve yönetimini sürekli veya geçici olarak üstlenen kişi, hayvanın verdiği zararı gidermekle yükümlüdür. Hayvan bulunduran, bu zararın doğmasını engellemek için gerekli özeni gösterdiğini ispat ederse sorumlu olmaz. Hayvan, bir başkası veya
+4. LAW-6098-M68 score=0.8413 tag=Kanun Maddesi
+   title=TÜRK BORÇLAR KANUNU - Madde 68
+   matched_terms=[]
+   snippet=Bir kişinin hayvanı, başkasının taşınmazı üzerinde bir zarar verdiği takdirde, taşınmazın zilyedi, o hayvanı yakalayabilir, zararı giderilinceye kadar alıkoyabilir; hatta durum ve koşullar haklı gösteriyorsa hayvanı diğer yollarla etkisiz hâle getirebilir. Bu 
+5. P-003253 score=0.8402 tag=Turkish Legal QA
+   title=Pay sahibi veya alacaklılar tarafından açılan tazminat davasında tazminatın nereye ödenmesi talep edilmelidir?
+   matched_terms=['tazminat']
+   snippet=Pay sahibi veya alacaklılar tarafından açılan tazminat davasında tazminatın şirkete ödenmesi talep edilmelidir.
+6. P-000683 score=0.8371 tag=Turkish Legal QA
+   title=Maddi ve manevi zarara uğrayan kişiler, sürücüden tazminat talep etmek için hangi hukuki yolları izleyebilirler?
+   matched_terms=['tazminat']
+   snippet=Maddi ve manevi zarara uğrayan kişiler, sürücüden tazminat talep etmek için hukuk mahkemelerinde hâksiz fiil hükümleri çerçevesinde veya Karayolları Trafik Kanunu’nun 85. maddesinde düzenlenen araç işletenin sorumluluğuna giderek talep edebilirler.
+7. P-013660 score=0.8363 tag=Turkish Legal QA
+   title=İş kazası nedeniyle manevi tazminat talep etme hakkı kimlere aittir ve hangi durumlarda bu hak doğar?
+   matched_terms=['tazminat']
+   snippet=İş kazası nedeniyle manevi tazminat talep etme hakkı, işçinin yaralanması veya ölümü durumunda işçinin yakınlarına aittir. Bu hak, iş kazası sebebiyle yaşanan üzüntü ve keder nedeniyle doğar.
+8. LAW-4721-M25 score=0.8355 tag=Kanun Maddesi
+   title=TÜRK MEDENİ KANUNU - Madde 25
+   matched_terms=['tazminat']
+   snippet=Davacı, hâkimden saldırı tehlikesinin önlenmesini, sürmekte olan saldırıya son verilmesini, sona ermiş olsa bile etkileri devam eden saldırının hukuka aykırılığının tespitini isteyebilir. Davacı bunlarla birlikte, düzeltmenin veya kararın üçüncü kişilere bildi

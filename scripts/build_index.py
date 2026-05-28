@@ -16,6 +16,7 @@ from rag_turkish_law.data.clean import clean_records  # noqa: E402
 from rag_turkish_law.data.load import iter_raw_records  # noqa: E402
 from rag_turkish_law.data.passages import read_jsonl, to_passages, write_jsonl  # noqa: E402
 from rag_turkish_law.data.splits import make_heldout  # noqa: E402
+from rag_turkish_law.data.statutes import load_statute_passages  # noqa: E402
 from rag_turkish_law.retrieval.embed import embed_passages  # noqa: E402
 from rag_turkish_law.retrieval.index import build_index, save_index, save_meta  # noqa: E402
 
@@ -66,6 +67,11 @@ def main() -> None:
         corpus, heldout = passages, []
     else:
         corpus, heldout = make_heldout(passages, cfg.data.heldout_size, cfg.data.seed)
+
+    statutes = load_statute_passages()
+    if statutes:
+        log.info("Adding %d article-level statute passages", len(statutes))
+        corpus.extend(statutes)
 
     curated_path = Path(cfg.paths.get("curated_sources_file", "data/curated/legal_sources.jsonl"))
     curated = list(read_jsonl(curated_path)) if curated_path.exists() else []
