@@ -5,6 +5,7 @@ paths:
   heldout_file: data/processed/heldout.jsonl
   faiss_index: data/processed/faiss.index
   passage_meta: data/processed/passage_meta.jsonl
+  curated_sources_file: data/curated/legal_sources.jsonl
   preprocessing_report: data/processed/preprocessing_report.md
   eval_dir: evaluation/results
 
@@ -19,6 +20,8 @@ retrieval:
   embedding_model: intfloat/multilingual-e5-base
   batch_size: 64
   top_k: 8
+  query_expansion:
+    enabled: true
   rerank:
     enabled: false
     model: BAAI/bge-reranker-v2-m3

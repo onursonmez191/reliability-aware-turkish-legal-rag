@@ -158,6 +158,7 @@ python scripts/run_eval.py --eval-set combined              # held-out + manual 
 python scripts/run_eval.py --ablation topk                  # k in {3,5,8}
 python scripts/run_eval.py --ablation rerank                # retrieve candidate pool, then rerank
 python scripts/run_eval.py --suite verifier --eval-set manual
+python scripts/debug_retrieval.py "Köpeğim birine zarar verirse tazminatı kimden isterim?"
 ```
 
 Results land in `evaluation/results/`.
@@ -177,6 +178,12 @@ The retrieval confidence gate can refuse to generate when top retrieval scores
 are too weak. This avoids presenting low-coverage answers as grounded legal
 answers, but it is still a heuristic: high similarity does not guarantee legal
 relevance.
+
+For known corpus gaps, the app can load small curated legal passages from
+`data/curated/legal_sources.jsonl`. These are targeted source-coverage patches,
+not a replacement for the main OrionCAF corpus. `scripts/debug_retrieval.py`
+prints the expanded retrieval queries, target-term coverage, top-k hits, and
+confidence labels for one question.
 
 Use the notebooks in `notebooks/` for exploratory checks, and use
 `scripts/run_eval.py` for reproducible metrics once the evaluation set is
