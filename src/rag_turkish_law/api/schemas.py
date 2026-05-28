@@ -19,6 +19,8 @@ class AskRequest(BaseModel):
     question: str = Field(..., min_length=2, max_length=2000)
     mode: Mode = "verified"
     k: int = Field(8, ge=1, le=20)
+    model: str | None = Field(default=None, max_length=120)
+    verifier_model: str | None = Field(default=None, max_length=120)
 
 
 class SourceItem(BaseModel):
@@ -56,3 +58,38 @@ class AskResponse(BaseModel):
     sources: list[SourceItem] = Field(default_factory=list)
     verdict: Verdict | None = None
     timings: list[StepTiming] = Field(default_factory=list)
+    model: str | None = None
+    verifier_model: str | None = None
+
+
+class ModelOption(BaseModel):
+    name: str
+    label: str
+    note: str = ""
+    installed: bool = False
+    running: bool = False
+    size: str | None = None
+    processor: str | None = None
+    context: str | None = None
+    until: str | None = None
+
+
+class ModelsResponse(BaseModel):
+    default: str
+    keep_alive: str
+    ollama_status: Literal["online", "offline"]
+    error: str | None = None
+    models: list[ModelOption] = Field(default_factory=list)
+    running: list[str] = Field(default_factory=list)
+
+
+class ModelActionRequest(BaseModel):
+    model: str = Field(..., min_length=1, max_length=120)
+    keep_alive: str | None = Field(default=None, max_length=40)
+
+
+class ModelActionResponse(BaseModel):
+    model: str
+    status: Literal["loaded", "unloaded"]
+    message: str
+    state: ModelsResponse

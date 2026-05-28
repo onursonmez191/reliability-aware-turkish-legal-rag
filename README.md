@@ -124,7 +124,11 @@ python scripts/serve.py
 
 The FastAPI app serves the React UI at `/` and exposes:
 
-- `POST /api/ask` — `{question, mode, k}` → answer + sources + verdict + timings
+- `POST /api/ask` — `{question, mode, k, model}` → answer + sources + verdict + timings
+- `POST /api/ask/stream` — same payload, Server-Sent Events with step, source, token, verdict, and final events
+- `GET /api/models` — configured Ollama models, installed/running state
+- `POST /api/models/load` — pre-load one configured model and unload other configured resident models
+- `POST /api/models/unload` — eject a configured model from Ollama memory
 - `GET /api/health` — liveness check
 
 UI modes (selectable in the header tabs and the Tweaks panel):
@@ -132,6 +136,11 @@ UI modes (selectable in the header tabs and the Tweaks panel):
 - **A. LLM-only** — single generation call, no retrieval, ungrounded.
 - **B. RAG** — embed → retrieve → generate with citations.
 - **C. RAG + Verifier** — adds claim-level verification with a reliability banner.
+
+The Model Runtime card in the right column lets you switch between the
+allowlisted Ollama models and load/eject them manually. Loading a model through
+the UI unloads any other configured model that is already resident, which avoids
+keeping multiple large dense models in memory on a local laptop.
 
 ## CLI sanity checks
 
@@ -196,6 +205,9 @@ at a different file. Common knobs:
 - `generation.base_url` — Ollama endpoint (only used when `provider: ollama`)
 - `generation.hf_model` — Ollama model tag (e.g. `qwen2.5:7b-instruct`) or HF model id depending on provider
 - `verification.hf_model` / `verification.temperature` / `verification.max_new_tokens` — verifier call settings
+- `models.available` — UI allowlist for selectable Ollama models
+- `models.default` — model selected by default in the UI
+- `models.keep_alive` — how long Ollama keeps a loaded model resident
 - `data.min_answer_chars` / `data.heldout_size` — preprocessing thresholds
 
 ## Notes on safety

@@ -105,6 +105,114 @@ const Header = ({ mode, setMode, k, setK }) => (
   </header>
 );
 
+// ---------- model runtime ----------
+
+const MODEL_FALLBACKS = [
+  { name: "qwen2.5:7b-instruct", label: "Qwen 2.5 7B", note: "lightweight baseline" },
+  { name: "qwen3.6:27b", label: "Qwen 3.6 27B", note: "dense reasoning model" },
+  { name: "gemma4:31b", label: "Gemma 4 31B", note: "dense multilingual model" },
+];
+
+const modelOptionsFromState = (state) => {
+  const models = state && Array.isArray(state.models) ? state.models : [];
+  return models.length ? models : MODEL_FALLBACKS;
+};
+
+const modelStatus = (model, online) => {
+  if (!online) return { label: "offline", tone: "bad" };
+  if (model?.running) return { label: "loaded", tone: "ok" };
+  if (model?.installed) return { label: "installed", tone: "idle" };
+  return { label: "missing", tone: "warn" };
+};
+
+const ModelRuntime = ({
+  state,
+  selected,
+  setSelected,
+  busy,
+  error,
+  onLoad,
+  onUnload,
+  onRefresh,
+}) => {
+  const options = modelOptionsFromState(state);
+  const selectedModel = options.find((m) => m.name === selected) || options[0];
+  const online = state?.ollama_status !== "offline";
+  const status = modelStatus(selectedModel, online);
+  const running = (state?.models || []).filter((m) => m.running);
+  const detailBits = [
+    selectedModel?.size,
+    selectedModel?.processor,
+    selectedModel?.context ? `ctx ${selectedModel.context}` : null,
+  ].filter(Boolean);
+
+  return (
+    <section className="card model-card" data-screen-label="Model Runtime">
+      <header className="card-head">
+        <div className="card-num">00</div>
+        <div className="card-title">Model Runtime</div>
+        <div className="card-sub">ollama · local</div>
+      </header>
+      <div className="model-body">
+        <div className="model-row">
+          <label className="model-label" htmlFor="model-select">Active model</label>
+          <span className={`model-status ${status.tone}`}>{busy || status.label}</span>
+        </div>
+        <select
+          id="model-select"
+          className="model-select"
+          value={selected}
+          onChange={(e) => setSelected(e.target.value)}
+          disabled={busy}
+        >
+          {options.map((m) => (
+            <option key={m.name} value={m.name}>{m.label || m.name}</option>
+          ))}
+        </select>
+        <div className="model-note">
+          <span>{selectedModel?.name}</span>
+          {selectedModel?.note && <span>{selectedModel.note}</span>}
+        </div>
+        {detailBits.length > 0 && <div className="model-detail">{detailBits.join(" · ")}</div>}
+        {running.length > 0 ? (
+          <div className="model-resident">
+            <span className="resident-key">resident</span>
+            <span className="resident-val">{running.map((m) => m.label || m.name).join(", ")}</span>
+          </div>
+        ) : (
+          <div className="model-resident muted">
+            <span className="resident-key">resident</span>
+            <span className="resident-val">none</span>
+          </div>
+        )}
+        {(error || state?.error) && (
+          <div className="model-error">{error || state.error}</div>
+        )}
+        <div className="model-actions">
+          <button
+            className="model-btn primary"
+            onClick={onLoad}
+            disabled={busy || !online || !selectedModel?.installed}
+            title={!selectedModel?.installed ? "Model must be pulled with Ollama first." : ""}
+          >
+            Load
+          </button>
+          <button
+            className="model-btn"
+            onClick={onUnload}
+            disabled={busy || !online || !selectedModel?.running}
+          >
+            Eject
+          </button>
+          <button className="model-btn ghost" onClick={onRefresh} disabled={busy}>
+            Refresh
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+};
+
 // ---------- composer ----------
 
 const Composer = ({ value, setValue, onAsk, busy, suggestions, onPick }) => {
@@ -163,20 +271,21 @@ const Composer = ({ value, setValue, onAsk, busy, suggestions, onPick }) => {
 
 // ---------- pipeline strip ----------
 
-const Pipeline = ({ active, mode }) => {
+const Pipeline = ({ active, seen, mode }) => {
   const steps = window.PIPELINE_STEPS.filter((s) => {
     if (mode === "llm") return s.id === "generate";
     if (mode === "rag") return s.id !== "verify";
     return true;
   });
+  const seenSet = seen instanceof Set ? seen : new Set(seen || []);
   return (
     <div className="pipeline" aria-label="Pipeline">
       {steps.map((s, i) => {
         const state =
           active === null ? "idle" :
-          active === "done" ? "done" :
+          active === "done" && seenSet.has(s.id) ? "done" :
           active === s.id ? "running" :
-          steps.findIndex((x) => x.id === active) > i ? "done" : "idle";
+          seenSet.has(s.id) ? "done" : "idle";
         return (
           <div key={s.id} className={`pstep ${state}`}>
             <div className="pstep-mark">
@@ -198,7 +307,7 @@ const Pipeline = ({ active, mode }) => {
 
 // ---------- answer ----------
 
-const Answer = ({ text, onCite, mode, hovered, setHovered }) => {
+const Answer = ({ text, onCite, mode, hovered, setHovered, streaming = false }) => {
   const parts = useMemo(() => text.split(/(\[\d+\])/g), [text]);
   return (
     <div className="answer-text">
@@ -220,6 +329,7 @@ const Answer = ({ text, onCite, mode, hovered, setHovered }) => {
         }
         return <span key={i}>{p}</span>;
       })}
+      {streaming && <span className="stream-cursor" aria-hidden="true"></span>}
     </div>
   );
 };
@@ -291,9 +401,34 @@ const VerdictCard = ({ v, mode }) => {
   );
 };
 
+const VerdictPending = ({ active }) => (
+  <section className="card verdict-card pending-card" data-screen-label="Verdict Pending">
+    <header className="card-head">
+      <div className="card-num">03</div>
+      <div className="card-title">Güvenilirlik Analizi</div>
+      <div className="card-sub">verifier · pending</div>
+    </header>
+    <div className="pending-body">
+      <div className="pending-mark">
+        <span className={active ? "dot-pulse" : "dot-empty"}></span>
+      </div>
+      <div>
+        <div className="pending-title">
+          {active ? "İddialar kontrol ediliyor" : "Cevap bekleniyor"}
+        </div>
+        <div className="pending-text">
+          {active
+            ? "Verifier, üretilen cevaptaki iddiaları kaynaklarla karşılaştırıyor."
+            : "Cevap üretimi tamamlandığında claim-level doğrulama başlayacak."}
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
 // ---------- sources list ----------
 
-const Sources = ({ items, hovered, setHovered, k }) => {
+const Sources = ({ items, hovered, setHovered, k, loading = false }) => {
   const visible = items.slice(0, k);
   const scores = visible.map((s) => Number(s.score)).filter(Number.isFinite);
   const allCosineLike = scores.length > 0 && scores.every((s) => s >= 0 && s <= 1);
@@ -312,10 +447,19 @@ const Sources = ({ items, hovered, setHovered, k }) => {
       <header className="card-head">
         <div className="card-num">{"04"}</div>
         <div className="card-title">Retrieved Sources</div>
-        <div className="card-sub">retriever · top-{k}</div>
+        <div className="card-sub">{loading ? "retriever · pending" : `retriever · top-${k}`}</div>
       </header>
-      <ul className="source-list">
-        {visible.map((s, i) => {
+      {visible.length === 0 ? (
+        <div className="pending-body">
+          <div className="pending-mark"><span className="dot-pulse"></span></div>
+          <div>
+            <div className="pending-title">Kaynaklar aranıyor</div>
+            <div className="pending-text">FAISS araması ve güven eşiği kontrolü tamamlanınca pasajlar burada görünecek.</div>
+          </div>
+        </div>
+      ) : (
+        <ul className="source-list">
+          {visible.map((s, i) => {
         const n = i + 1;
         const score = Number(s.score);
         const scoreText = Number.isFinite(score) ? score.toFixed(2) : "—";
@@ -346,16 +490,57 @@ const Sources = ({ items, hovered, setHovered, k }) => {
             </div>
           </li>
         );
-        })}
-      </ul>
+          })}
+        </ul>
+      )}
     </section>
   );
 };
 
 // ---------- comparison ----------
 
+const comparisonVerdictMeta = (verdict) => {
+  if (!verdict) {
+    return {
+      className: "warn-foot",
+      icon: "partial",
+      text: "verifier pending",
+    };
+  }
+  if (verdict.key === "supported") {
+    return {
+      className: "ok-foot",
+      icon: "supported",
+      text: "grounded · claim-by-claim verified",
+    };
+  }
+  if (verdict.key === "insufficient") {
+    return {
+      className: "warn-foot",
+      icon: "insufficient",
+      text: "insufficient evidence",
+    };
+  }
+  if (verdict.key === "error") {
+    return {
+      className: "bad-foot",
+      icon: "error",
+      text: "verifier error",
+    };
+  }
+  return {
+    className: verdict.risk === "high" ? "bad-foot" : "warn-foot",
+    icon: verdict.key || "partial",
+    text: `${VERDICT_THEME[verdict.key]?.label || verdict.key} · verifier checked`,
+  };
+};
+
 const Comparison = ({ mode, a }) => {
   if (mode !== "verified") return null;
+  const llmPending = a.comparisonLoading && !a.llmOnly;
+  const ragText = a.answer.replace(/\s*\[\d+\]/g, "");
+  const ragRefused = a.verdict?.key === "insufficient" || /Mevcut kaynaklar bu soruyu yeterince kapsamıyor/i.test(ragText);
+  const verdictMeta = comparisonVerdictMeta(a.verdict);
   return (
     <section className="card compare-card" data-screen-label="Comparison">
       <header className="card-head">
@@ -366,23 +551,31 @@ const Comparison = ({ mode, a }) => {
       <div className="compare-grid">
         <div className="compare-col">
           <div className="compare-head"><span className="cmp-k">A</span> LLM-only</div>
-          <div className="compare-body">{a.llmOnly}</div>
+          <div className={`compare-body ${llmPending ? "muted" : ""}`}>
+            {llmPending ? (
+              <>
+                LLM-only karşılaştırma üretiliyor
+                <span className="stream-cursor" aria-hidden="true"></span>
+              </>
+            ) : a.llmOnly}
+          </div>
           <div className="compare-foot bad-foot">
             <VerdictIcon k="risk" size={11}/> no sources · unverified
           </div>
         </div>
         <div className="compare-col">
           <div className="compare-head"><span className="cmp-k">B</span> RAG</div>
-          <div className="compare-body">{a.answer.replace(/\s*\[\d+\]/g, "")}</div>
+          <div className="compare-body">{ragText}</div>
           <div className="compare-foot warn-foot">
-            <VerdictIcon k="partial" size={11}/> grounded · no verifier
+            <VerdictIcon k={ragRefused ? "insufficient" : "partial"} size={11}/>
+            {ragRefused ? "insufficient retrieved context" : "grounded · no verifier"}
           </div>
         </div>
         <div className="compare-col active">
           <div className="compare-head"><span className="cmp-k">C</span> RAG + Verifier</div>
           <div className="compare-body">{a.answer}</div>
-          <div className="compare-foot ok-foot">
-            <VerdictIcon k="supported" size={11}/> grounded · claim-by-claim verified
+          <div className={`compare-foot ${verdictMeta.className}`}>
+            <VerdictIcon k={verdictMeta.icon} size={11}/> {verdictMeta.text}
           </div>
         </div>
       </div>
@@ -426,6 +619,7 @@ const Disclaimer = () => (
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "mode": "verified",
   "topK": 8,
+  "model": "qwen2.5:7b-instruct",
   "showPipeline": true,
   "showComparison": true,
   "density": "comfortable"
@@ -438,8 +632,12 @@ function App() {
   const [activeAnswer, setActiveAnswer] = useState(null);
   const [busy, setBusy] = useState(false);
   const [pipelineStep, setPipelineStep] = useState(null);
+  const [pipelineSeen, setPipelineSeen] = useState([]);
   const [hoveredCite, setHoveredCite] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
+  const [modelState, setModelState] = useState(null);
+  const [modelBusy, setModelBusy] = useState(null);
+  const [modelError, setModelError] = useState(null);
 
   const mode = t.mode;
   const setMode = (m) => {
@@ -451,44 +649,105 @@ function App() {
   };
   const k = t.topK;
   const setK = (n) => setTweak("topK", n);
+  const selectedModel = t.model;
+  const setSelectedModel = (m) => setTweak("model", m);
+
+  const refreshModels = async () => {
+    try {
+      const state = await window.fetchModels();
+      setModelState(state);
+      setModelError(null);
+      const options = modelOptionsFromState(state);
+      if (!options.some((m) => m.name === selectedModel)) {
+        setSelectedModel(state.default || options[0]?.name || "qwen2.5:7b-instruct");
+      }
+    } catch (err) {
+      setModelError(err.message || String(err));
+    }
+  };
+
+  useEffect(() => {
+    refreshModels();
+    const id = window.setInterval(refreshModels, 12000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const runModelAction = async (action) => {
+    setModelBusy(action === "load" ? "loading" : "ejecting");
+    setModelError(null);
+    try {
+      const resp = await window.postModelAction(action, selectedModel);
+      setModelState(resp.state);
+    } catch (err) {
+      setModelError(err.message || String(err));
+    } finally {
+      setModelBusy(null);
+    }
+  };
 
   const ask = async (q) => {
     setBusy(true);
-    setActiveQ(null);
-    setActiveAnswer(null);
+    setActiveQ(q);
+    setActiveAnswer({
+      answer: "",
+      llmOnly: "",
+      sources: [],
+      verdict: null,
+      timings: [],
+      streaming: true,
+    });
     setErrorMsg(null);
-
-    const steps = mode === "llm"
-      ? ["generate"]
-      : mode === "rag"
-      ? ["embed", "retrieve", "rerank", "generate"]
-      : ["embed", "retrieve", "rerank", "generate", "verify"];
-
-    // Visual pipeline animation while the request is in flight.
-    const animation = (async () => {
-      for (const s of steps) {
-        setPipelineStep(s);
-        await new Promise((r) => setTimeout(r, 400));
-      }
-    })();
+    setPipelineStep(null);
+    setPipelineSeen([]);
 
     try {
-      const mainPromise = window.postAsk({ question: q.q, mode, k });
-      const wantLlmCompare = mode === "verified" && t.showComparison;
-      const llmPromise = wantLlmCompare
-        ? window.postAsk({ question: q.q, mode: "llm", k }).catch(() => null)
-        : Promise.resolve(null);
-
-      const [mainResp, llmResp] = await Promise.all([mainPromise, llmPromise]);
-      await animation;
+      const mainResp = await window.postAskStream({
+        question: q.q,
+        mode,
+        k,
+        model: selectedModel,
+        onEvent: (event, data) => {
+          if (event === "step") {
+            setPipelineStep(data.id);
+            setPipelineSeen((prev) => prev.includes(data.id) ? prev : [...prev, data.id]);
+          } else if (event === "sources") {
+            setActiveAnswer((prev) => ({ ...(prev || {}), sources: data.sources || [] }));
+          } else if (event === "chunk") {
+            const text = data.text || "";
+            setActiveAnswer((prev) => {
+              const current = prev || { answer: "", llmOnly: "", sources: [], verdict: null, timings: [] };
+              return mode === "llm"
+                ? { ...current, llmOnly: (current.llmOnly || "") + text, answer: (current.answer || "") + text, streaming: true }
+                : { ...current, answer: (current.answer || "") + text, streaming: true };
+            });
+          } else if (event === "verdict") {
+            setActiveAnswer((prev) => ({ ...(prev || {}), verdict: data.verdict || null }));
+          }
+        },
+      });
 
       setPipelineStep("done");
-      setActiveQ(q);
-      setActiveAnswer(window.normalizeAnswerPayload(mainResp, llmResp));
+      setActiveAnswer({ ...window.normalizeAnswerPayload(mainResp, null), streaming: false });
+      if (mode === "verified" && t.showComparison) {
+        setActiveAnswer((prev) => prev ? { ...prev, comparisonLoading: true } : prev);
+        window.postAsk({ question: q.q, mode: "llm", k, model: selectedModel })
+          .then((llmResp) => {
+            setActiveAnswer((prev) => prev ? {
+              ...prev,
+              llmOnly: llmResp.answer || "",
+              comparisonLoading: false,
+            } : prev);
+          })
+          .catch(() => {
+            setActiveAnswer((prev) => prev ? { ...prev, comparisonLoading: false } : prev);
+          });
+      }
+      refreshModels();
     } catch (err) {
       console.error(err);
       setErrorMsg(err.message || String(err));
       setPipelineStep(null);
+      setActiveAnswer(null);
     } finally {
       setBusy(false);
     }
@@ -530,7 +789,7 @@ function App() {
                 <span>Pipeline</span>
                 <span className="block-meta">{mode === "llm" ? "1 step" : mode === "rag" ? "4 steps" : "5 steps"}</span>
               </div>
-              <Pipeline active={pipelineStep} mode={mode}/>
+              <Pipeline active={pipelineStep} seen={pipelineSeen} mode={mode}/>
             </section>
           )}
 
@@ -548,9 +807,19 @@ function App() {
                 <span className="qr-text">{activeQ.q}</span>
               </div>
               {mode === "llm" ? (
-                <div className="answer-text plain">{a.llmOnly}</div>
+                <div className="answer-text plain">
+                  {a.llmOnly}
+                  {a.streaming && <span className="stream-cursor" aria-hidden="true"></span>}
+                </div>
               ) : (
-                <Answer text={a.answer} onCite={() => {}} mode={mode} hovered={hoveredCite} setHovered={setHoveredCite}/>
+                <Answer
+                  text={a.answer}
+                  onCite={() => {}}
+                  mode={mode}
+                  hovered={hoveredCite}
+                  setHovered={setHoveredCite}
+                  streaming={a.streaming}
+                />
               )}
               {mode === "llm" && (
                 <div className="answer-warn">
@@ -585,9 +854,29 @@ function App() {
         </div>
 
         <aside className="col col-side">
-          {a && mode === "verified" && a.verdict && <VerdictCard v={a.verdict} mode={mode}/>}
+          <ModelRuntime
+            state={modelState}
+            selected={selectedModel}
+            setSelected={setSelectedModel}
+            busy={modelBusy || (busy ? "answering" : a?.comparisonLoading ? "comparing" : null)}
+            error={modelError}
+            onLoad={() => runModelAction("load")}
+            onUnload={() => runModelAction("unload")}
+            onRefresh={refreshModels}
+          />
+          {a && mode === "verified" && (
+            a.verdict
+              ? <VerdictCard v={a.verdict} mode={mode}/>
+              : <VerdictPending active={pipelineStep === "verify"}/>
+          )}
           {a && mode !== "llm" && (
-            <Sources items={a.sources} hovered={hoveredCite} setHovered={setHoveredCite} k={k}/>
+            <Sources
+              items={a.sources}
+              hovered={hoveredCite}
+              setHovered={setHoveredCite}
+              k={k}
+              loading={a.sources.length === 0}
+            />
           )}
           {!a && (
             <div className="side-empty">
@@ -610,7 +899,7 @@ function App() {
         </aside>
       </main>
 
-      {a && t.showComparison && <Comparison mode={mode} a={a}/>}
+      {a && !a.streaming && t.showComparison && <Comparison mode={mode} a={a}/>}
 
       <footer className="footer">
         <div className="footer-left">

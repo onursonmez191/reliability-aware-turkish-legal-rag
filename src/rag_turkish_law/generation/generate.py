@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Sequence
+from typing import Iterator, Sequence
 
 from . import client, format, prompts
 
@@ -36,6 +36,20 @@ def generate_llm_only(question: str, model: str | None = None) -> GeneratedAnswe
     messages = prompts.build_llm_only_messages(question)
     text = client.chat(messages, model=model)
     return GeneratedAnswer(text=text, citations=[], citation_to_passage_id={}, mode="llm")
+
+
+def stream_grounded_text(
+    question: str,
+    passages: Sequence[dict],
+    model: str | None = None,
+) -> Iterator[str]:
+    messages = prompts.build_grounded_messages(question, passages)
+    yield from client.chat_stream(messages, model=model)
+
+
+def stream_llm_only_text(question: str, model: str | None = None) -> Iterator[str]:
+    messages = prompts.build_llm_only_messages(question)
+    yield from client.chat_stream(messages, model=model)
 
 
 if __name__ == "__main__":

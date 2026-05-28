@@ -42,6 +42,22 @@ verification:
   max_new_tokens: 768
   temperature: 0.0
 
+models:
+  default: qwen2.5:7b-instruct
+  keep_alive: 10m
+  load_timeout_s: 600
+  unload_timeout_s: 30
+  available:
+    - name: qwen2.5:7b-instruct
+      label: Qwen 2.5 7B
+      note: lightweight baseline
+    - name: qwen3.6:27b
+      label: Qwen 3.6 27B
+      note: dense reasoning model
+    - name: gemma4:31b
+      label: Gemma 4 31B
+      note: dense multilingual model
+
 api:
   host: 127.0.0.1
   port: 8000
