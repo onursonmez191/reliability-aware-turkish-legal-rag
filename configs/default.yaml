@@ -18,11 +18,16 @@ data:
 retrieval:
   embedding_model: intfloat/multilingual-e5-base
   batch_size: 64
-  top_k: 5
+  top_k: 8
   rerank:
     enabled: false
     model: BAAI/bge-reranker-v2-m3
+    candidate_k: 20
     keep_top: 5
+  confidence:
+    enabled: true
+    min_top_score: 0.75
+    min_avg_top3_score: 0.70
 
 generation:
   provider: ollama  # ollama | hf

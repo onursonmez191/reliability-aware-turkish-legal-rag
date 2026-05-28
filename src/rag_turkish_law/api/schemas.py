@@ -12,13 +12,13 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 Mode = Literal["llm", "rag", "verified"]
-VerdictKey = Literal["supported", "partial", "unsupported", "insufficient", "risk"]
+VerdictKey = Literal["supported", "partial", "unsupported", "insufficient", "risk", "error"]
 
 
 class AskRequest(BaseModel):
     question: str = Field(..., min_length=2, max_length=2000)
     mode: Mode = "verified"
-    k: int = Field(5, ge=1, le=20)
+    k: int = Field(8, ge=1, le=20)
 
 
 class SourceItem(BaseModel):
@@ -32,7 +32,8 @@ class SourceItem(BaseModel):
 class ClaimItem(BaseModel):
     text: str
     status: VerdictKey
-    src: list[int] = []
+    src: list[int] = Field(default_factory=list)
+    cited: list[int] = Field(default_factory=list)
 
 
 class Verdict(BaseModel):
@@ -52,6 +53,6 @@ class AskResponse(BaseModel):
     mode: Mode
     answer: str
     llm_only: str | None = None
-    sources: list[SourceItem]
+    sources: list[SourceItem] = Field(default_factory=list)
     verdict: Verdict | None = None
-    timings: list[StepTiming] = []
+    timings: list[StepTiming] = Field(default_factory=list)

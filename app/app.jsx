@@ -37,6 +37,13 @@ const VerdictIcon = ({ k, size = 14 }) => {
         <path d="M8 7v3M8 12v.1"></path>
       </svg>
     );
+  if (k === "error")
+    return (
+      <svg {...common}>
+        <path d="M4 4l8 8M12 4l-8 8"></path>
+        <circle cx="8" cy="8" r="6"></circle>
+      </svg>
+    );
   return null;
 };
 
@@ -46,7 +53,10 @@ const VERDICT_THEME = {
   unsupported:  { label: "Unsupported",         en: "no evidence",       color: "var(--bad)",   bg: "var(--bad-bg)",  ring: "var(--bad-ring)"  },
   insufficient: { label: "Insufficient context",en: "low coverage",      color: "var(--ink-2)", bg: "var(--ink-bg)",  ring: "var(--ink-ring)"  },
   risk:         { label: "Legal-advice risk",   en: "case-specific",     color: "var(--bad)",   bg: "var(--bad-bg)",  ring: "var(--bad-ring)"  },
+  error:        { label: "Verifier error",      en: "check backend",      color: "var(--bad)",   bg: "var(--bad-bg)",  ring: "var(--bad-ring)"  },
 };
+
+const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
 // ---------- header ----------
 
@@ -237,7 +247,7 @@ const VerdictCard = ({ v, mode }) => {
         </div>
         <div className="verdict-score">
           <div className="score-bar">
-            <div className="score-fill" style={{ width: `${Math.round(v.score * 100)}%` }}></div>
+            <div className="score-fill" style={{ width: `${clamp(Math.round(v.score * 100), 0, 100)}%` }}></div>
           </div>
           <div className="score-num">{v.score.toFixed(2)}</div>
         </div>
@@ -269,9 +279,11 @@ const VerdictCard = ({ v, mode }) => {
         <div className="risk-banner">
           <VerdictIcon k="risk" size={14}/>
           <span>
-            {v.key === "risk"
-              ? "This answer may contain case-specific legal advice. Consult a qualified lawyer."
-              : "Available sources don't cover this situation well; verify findings with an expert."}
+            {v.key === "error"
+              ? "The verifier failed, so this answer was not reliability-checked."
+              : v.key === "risk"
+                ? "This answer may contain case-specific legal advice. Consult a qualified lawyer."
+                : "Available sources don't cover this situation well; verify findings with an expert."}
           </span>
         </div>
       )}
@@ -281,16 +293,32 @@ const VerdictCard = ({ v, mode }) => {
 
 // ---------- sources list ----------
 
-const Sources = ({ items, hovered, setHovered, k }) => (
-  <section className="card sources-card" data-screen-label="Sources">
-    <header className="card-head">
-      <div className="card-num">{"04"}</div>
-      <div className="card-title">Retrieved Sources</div>
-      <div className="card-sub">retriever · top-{k}</div>
-    </header>
-    <ul className="source-list">
-      {items.slice(0, k).map((s, i) => {
+const Sources = ({ items, hovered, setHovered, k }) => {
+  const visible = items.slice(0, k);
+  const scores = visible.map((s) => Number(s.score)).filter(Number.isFinite);
+  const allCosineLike = scores.length > 0 && scores.every((s) => s >= 0 && s <= 1);
+  const minScore = scores.length ? Math.min(...scores) : 0;
+  const maxScore = scores.length ? Math.max(...scores) : 1;
+  const scoreWidth = (raw) => {
+    const score = Number(raw);
+    if (!Number.isFinite(score)) return 0;
+    if (allCosineLike) return clamp(score * 100, 0, 100);
+    if (maxScore === minScore) return 100;
+    return clamp(((score - minScore) / (maxScore - minScore)) * 100, 0, 100);
+  };
+
+  return (
+    <section className="card sources-card" data-screen-label="Sources">
+      <header className="card-head">
+        <div className="card-num">{"04"}</div>
+        <div className="card-title">Retrieved Sources</div>
+        <div className="card-sub">retriever · top-{k}</div>
+      </header>
+      <ul className="source-list">
+        {visible.map((s, i) => {
         const n = i + 1;
+        const score = Number(s.score);
+        const scoreText = Number.isFinite(score) ? score.toFixed(2) : "—";
         return (
           <li
             key={s.id}
@@ -310,18 +338,19 @@ const Sources = ({ items, hovered, setHovered, k }) => (
               <div className="source-snippet">"{s.snippet}"</div>
               <div className="source-meta">
                 <div className="sim">
-                  <span className="sim-label">cos sim</span>
-                  <div className="sim-bar"><div className="sim-fill" style={{ width: `${s.score * 100}%` }}></div></div>
-                  <span className="sim-num">{s.score.toFixed(2)}</span>
+                  <span className="sim-label">score</span>
+                  <div className="sim-bar"><div className="sim-fill" style={{ width: `${scoreWidth(s.score)}%` }}></div></div>
+                  <span className="sim-num">{scoreText}</span>
                 </div>
               </div>
             </div>
           </li>
         );
-      })}
-    </ul>
-  </section>
-);
+        })}
+      </ul>
+    </section>
+  );
+};
 
 // ---------- comparison ----------
 
@@ -396,7 +425,7 @@ const Disclaimer = () => (
 
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "mode": "verified",
-  "topK": 5,
+  "topK": 8,
   "showPipeline": true,
   "showComparison": true,
   "density": "comfortable"

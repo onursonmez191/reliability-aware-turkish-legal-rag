@@ -1,8 +1,8 @@
 """Aggregate per-claim verdicts into an overall verdict the UI can show.
 
 Weights mirror what users perceive as reliable: `supported` is full credit,
-`partial` half, `risk` zero with a risk flag, `unsupported`/`insufficient`
-zero. The chosen `key` follows a priority order so a single risky claim
+    `partial` half, `risk` zero with a risk flag, `unsupported`/`insufficient`
+zero, and `error` zero with a high-risk flag. The chosen `key` follows a priority order so a single risky claim
 dominates the banner color (matches UI's `VerdictCard` behavior).
 """
 
@@ -19,6 +19,7 @@ STATUS_WEIGHTS = {
     "unsupported": 0.0,
     "insufficient": 0.0,
     "risk": 0.0,
+    "error": 0.0,
 }
 
 
@@ -42,6 +43,8 @@ def _pick_overall_key(claims: Sequence[ClaimVerdict]) -> str:
     if not claims:
         return "insufficient"
     statuses = {c.status for c in claims}
+    if "error" in statuses:
+        return "error"
     if "risk" in statuses:
         return "risk"
     if statuses == {"supported"}:
@@ -54,6 +57,8 @@ def _pick_overall_key(claims: Sequence[ClaimVerdict]) -> str:
 
 
 def _risk_level(claims: Sequence[ClaimVerdict], score: float) -> str:
+    if any(c.status == "error" for c in claims):
+        return "high"
     if any(c.status == "risk" for c in claims):
         return "high"
     if score < 0.5:
@@ -65,8 +70,11 @@ def aggregate(claims: Sequence[ClaimVerdict]) -> OverallVerdict:
     if not claims:
         return OverallVerdict(key="insufficient", score=0.0, risk="medium", claims=[])
 
-    score = sum(STATUS_WEIGHTS.get(c.status, 0.0) for c in claims) / len(claims)
     key = _pick_overall_key(claims)
+    if key == "error":
+        score = 0.0
+    else:
+        score = sum(STATUS_WEIGHTS.get(c.status, 0.0) for c in claims) / len(claims)
     risk = _risk_level(claims, score)
     return OverallVerdict(
         key=key,

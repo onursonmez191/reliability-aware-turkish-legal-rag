@@ -5,7 +5,7 @@ CS 455 LLM course project. A Turkish legal question-answering RAG system with:
 - corpus preparation from the public `OrionCAF/turkish_law_qa_dataset`
 - multilingual sentence embeddings + a FAISS index
 - source-grounded answer generation through a local Ollama server (default) or the Hugging Face Inference API
-- a verifier layer that labels each claim as `supported / partial / unsupported / insufficient / risk`
+- a verifier layer that labels each claim as `supported / partial / unsupported / insufficient / risk / error`
 - a React demo UI (in `app/`) wired to a FastAPI backend
 - evaluation scaffolding for Recall@k, MRR, manual rubric, and verifier metrics
 
@@ -26,7 +26,7 @@ docs/
   reports/                   Final report skeleton
   ethics/                    Disclaimer and limitations
 evaluation/
-  annotations/               Annotation worksheets
+  annotations/               Manual/adversarial eval JSONL and annotation worksheets
   results/                   Metric JSONs and ablation outputs
 scripts/
   build_index.py             load → clean → embed → FAISS
@@ -143,9 +143,12 @@ python -m rag_turkish_law.generation.generate --llm-only "Aynı soru."
 ## Evaluation
 
 ```bash
-python scripts/run_eval.py                       # Recall@3/@5, MRR over held-out
-python scripts/run_eval.py --ablation topk       # k ∈ {3,5,8}
-python scripts/run_eval.py --ablation rerank     # rerank on vs off
+python scripts/run_eval.py                                  # held-out retrieval smoke test
+python scripts/run_eval.py --eval-set manual                # manual/adversarial retrieval diagnostics
+python scripts/run_eval.py --eval-set combined              # held-out + manual diagnostics
+python scripts/run_eval.py --ablation topk                  # k in {3,5,8}
+python scripts/run_eval.py --ablation rerank                # retrieve candidate pool, then rerank
+python scripts/run_eval.py --suite verifier --eval-set manual
 ```
 
 Results land in `evaluation/results/`.
@@ -156,6 +159,15 @@ The script-generated held-out set is useful as a smoke test, but it should not
 be treated as the final evaluation because its questions are derived from the
 dataset itself. Final reported numbers should include a manually written set
 with paraphrased, ambiguous, unsupported, and legal-advice-risk questions.
+The tracked starter set is [evaluation/annotations/manual_eval.jsonl](evaluation/annotations/manual_eval.jsonl).
+
+The rerank ablation retrieves a larger candidate pool first and then applies
+the cross-encoder reranker, so `--ablation rerank` is a real off/on comparison.
+
+The retrieval confidence gate can refuse to generate when top retrieval scores
+are too weak. This avoids presenting low-coverage answers as grounded legal
+answers, but it is still a heuristic: high similarity does not guarantee legal
+relevance.
 
 Use the notebooks in `notebooks/` for exploratory checks, and use
 `scripts/run_eval.py` for reproducible metrics once the evaluation set is
@@ -176,11 +188,14 @@ Edit [configs/default.yaml](configs/default.yaml) or point `RAG_CONFIG`
 at a different file. Common knobs:
 
 - `retrieval.embedding_model` — swap to `paraphrase-multilingual-MiniLM-L12-v2` for ablation
-- `retrieval.top_k` — default 5
+- `retrieval.top_k` — default 8
 - `retrieval.rerank.enabled` — turn on cross-encoder reranking
+- `retrieval.rerank.candidate_k` — candidate pool size for rerank ablations
+- `retrieval.confidence.*` — low-confidence retrieval refusal thresholds
 - `generation.provider` — `ollama` (default) or `hf`
 - `generation.base_url` — Ollama endpoint (only used when `provider: ollama`)
 - `generation.hf_model` — Ollama model tag (e.g. `qwen2.5:7b-instruct`) or HF model id depending on provider
+- `verification.hf_model` / `verification.temperature` / `verification.max_new_tokens` — verifier call settings
 - `data.min_answer_chars` / `data.heldout_size` — preprocessing thresholds
 
 ## Notes on safety
@@ -190,6 +205,8 @@ at a different file. Common knobs:
 - The verifier flags any claim that mentions numeric compensation,
   imperative actions, or certainty words as `risk`, even when the LLM
   marks it `supported`.
+- Verifier backend failures are reported as `error`, not as ordinary
+  insufficient evidence.
 - The UI always shows the disclaimer banner.
 
 ## Feedback to track

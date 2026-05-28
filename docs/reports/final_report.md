@@ -25,7 +25,9 @@ React UI → FastAPI backend → (retrieval → generation → verification).
   `query: ` / `passage: ` prefixes.
 - Index: FAISS `IndexFlatIP` over L2-normalized vectors (cosine).
 - Optional reranker: cross-encoder, disabled by default; enabled in
-  ablation.
+  ablation with a larger candidate pool before keeping the final top-k.
+- Confidence gate: refuses to generate when top retrieval scores are too
+  weak, while still showing retrieved passages for inspection.
 
 ### 2.4 Generation
 - Local Ollama by default, with Hugging Face Inference API as a fallback.
@@ -36,15 +38,21 @@ React UI → FastAPI backend → (retrieval → generation → verification).
 ### 2.5 Verification
 - Claim splitter (sentence-based).
 - Per-claim LLM verifier returns JSON: `{status, source_ids, reason}`.
+- Claims keep both answer citations and verifier-supported source IDs, so
+  citation/source mismatches can be downgraded.
 - Deterministic risk gate catches money amounts, imperatives, and
   certainty words even when the LLM marks a claim as `supported`.
+- Verifier backend failures are surfaced as `error`, separate from
+  `insufficient`.
 - Aggregator turns claim verdicts into an overall `{key, score, risk}`.
 
 ## 3. Evaluation
 
 ### 3.1 Retrieval
 - Metrics: Recall@3, Recall@5, MRR.
-- Set: 50 held-out questions with `gold_passage_id`.
+- Sets: generated held-out questions with `gold_passage_id`, plus the
+  tracked manual/adversarial questions in
+  `evaluation/annotations/manual_eval.jsonl`.
 - Results: *TBD — fill from `evaluation/results/retrieval_metrics.json`.*
 
 ### 3.2 Answer quality (manual rubric)
@@ -54,7 +62,7 @@ React UI → FastAPI backend → (retrieval → generation → verification).
 - Results: *TBD — fill from rubric aggregation script output.*
 
 ### 3.3 Verifier
-- Labels: supported, partial, unsupported, insufficient, risk.
+- Labels: supported, partial, unsupported, insufficient, risk, error.
 - Method: human annotation on a sample, compared with verifier output.
 - Results: *TBD.*
 

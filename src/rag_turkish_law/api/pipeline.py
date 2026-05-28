@@ -7,6 +7,7 @@ from typing import Sequence
 
 from ..config import load_config
 from ..generation.generate import generate_grounded, generate_llm_only
+from ..retrieval.confidence import assess_retrieval_confidence
 from ..retrieval.rerank import rerank
 from ..retrieval.search import RetrievedPassage, retrieve
 from ..verification.aggregate import aggregate
@@ -54,6 +55,46 @@ def run_pipeline(question: str, mode: str, k: int) -> AskResponse:
 
     if cfg.retrieval.rerank.enabled:
         hits = _timed("rerank", lambda: rerank(question, hits), timings)
+
+    confidence = _timed("confidence", lambda: assess_retrieval_confidence(hits), timings)
+    if confidence.label == "low":
+        answer = (
+            "Mevcut kaynaklar bu soruyu yeterince kapsamıyor. "
+            "Bu nedenle kaynaklara dayalı güvenilir bir yanıt üretemiyorum."
+        )
+        if mode == "rag":
+            return AskResponse(
+                question=question,
+                mode="rag",
+                answer=answer,
+                llm_only=None,
+                sources=_passages_to_sources(hits),
+                verdict=None,
+                timings=timings,
+            )
+
+        verdict = Verdict(
+            key="insufficient",
+            score=0.0,
+            risk="medium",
+            claims=[
+                ClaimItem(
+                    text=answer,
+                    status="insufficient",
+                    src=[],
+                    cited=[],
+                )
+            ],
+        )
+        return AskResponse(
+            question=question,
+            mode="verified",
+            answer=answer,
+            llm_only=None,
+            sources=_passages_to_sources(hits),
+            verdict=verdict,
+            timings=timings,
+        )
 
     grounded = _timed(
         "generate",

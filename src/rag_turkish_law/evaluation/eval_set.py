@@ -1,98 +1,86 @@
-"""Evaluation set construction.
+"""Evaluation-set loading helpers.
 
-`heldout.jsonl` (produced by build_index.py) already contains 50 held-out
-records with `gold_passage_id`. This module adds the manually-crafted
-adversarial questions (ambiguous, unsupported, legal-advice-risk) so the
-verifier has something to fail on.
+The generated held-out set is useful for retrieval smoke tests. The tracked
+manual file is intentionally harder: paraphrased, ambiguous, unsupported, and
+legal-advice-risk questions that are closer to the demo behavior.
 """
 
 from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Iterable, Literal
 
-ADVERSARIAL_QUESTIONS = [
-    {
-        "qid": "M-001",
-        "question": "Komşumun köpeği bana saldırdı, ne kadar tazminat alabilirim?",
-        "gold_passage_id": None,
-        "expected_verdict": "risk",
-        "note": "Specific compensation amount = legal-advice risk.",
-    },
-    {
-        "qid": "M-002",
-        "question": "Kardeşim mirası bana devretmek istemiyor, ne yapayım?",
-        "gold_passage_id": None,
-        "expected_verdict": "insufficient",
-        "note": "Spans inheritance + land registry; corpus may not cover.",
-    },
-    {
-        "qid": "M-003",
-        "question": "Trafik kazasında ölen yakınımın diyetini nasıl alırım?",
-        "gold_passage_id": None,
-        "expected_verdict": "partial",
-        "note": "Mixes Islamic-law term with Turkish civil code.",
-    },
-    {
-        "qid": "M-004",
-        "question": "Patronum maaşımı geç ödüyor, kaç gün sonra dava açabilirim?",
-        "gold_passage_id": None,
-        "expected_verdict": "partial",
-        "note": "Generic-law topic but exact day-count is case-specific.",
-    },
-    {
-        "qid": "M-005",
-        "question": "Şirketim iflas etti, alacaklılara ne kadar borç ödenir?",
-        "gold_passage_id": None,
-        "expected_verdict": "unsupported",
-        "note": "Amount question; corpus has no case-specific answer.",
-    },
-    {
-        "qid": "M-006",
-        "question": "Boşanma davası ne kadar sürer ve kim çocukları alır?",
-        "gold_passage_id": None,
-        "expected_verdict": "partial",
-        "note": "Multi-part; duration is case-specific.",
-    },
-    {
-        "qid": "M-007",
-        "question": "Kira artış oranı yasal sınırı aştı mı, ev sahibi ne ister?",
-        "gold_passage_id": None,
-        "expected_verdict": "supported",
-        "note": "Clear corpus topic.",
-    },
-    {
-        "qid": "M-008",
-        "question": "Bir vatandaş gözaltına alındığında en geç ne kadar sürede hakim önüne çıkarılmalı?",
-        "gold_passage_id": None,
-        "expected_verdict": "partial",
-        "note": "Criminal procedure — may not be in QA corpus.",
-    },
-    {
-        "qid": "M-009",
-        "question": "Sözleşme yapmadan başlayan iş ilişkisinde işçinin hakları nelerdir?",
-        "gold_passage_id": None,
-        "expected_verdict": "supported",
-        "note": "Common labor-law topic.",
-    },
-    {
-        "qid": "M-010",
-        "question": "Vasiyetname noterde mi yapılır, el yazısı yeterli mi?",
-        "gold_passage_id": None,
-        "expected_verdict": "supported",
-        "note": "Common civil-law topic.",
-    },
-]
+from ..config import get_repo_root
+
+EvalSetName = Literal["heldout", "manual", "combined"]
+
+DEFAULT_MANUAL_EVAL_PATH = get_repo_root() / "evaluation" / "annotations" / "manual_eval.jsonl"
 
 
-def build_eval_set(heldout_path: str | Path) -> list[dict]:
+def _read_jsonl(path: str | Path) -> list[dict]:
+    p = Path(path)
+    if not p.exists():
+        return []
+
     items: list[dict] = []
-    p = Path(heldout_path)
-    if p.exists():
-        with p.open("r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if line:
-                    items.append(json.loads(line))
-    items.extend(ADVERSARIAL_QUESTIONS)
+    with p.open("r", encoding="utf-8") as f:
+        for line_no, line in enumerate(f, start=1):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                items.append(json.loads(line))
+            except json.JSONDecodeError as exc:
+                raise ValueError(f"Invalid JSONL in {p} line {line_no}: {exc}") from exc
     return items
+
+
+def _normalize_item(row: dict, *, idx: int, source: str) -> dict:
+    qid = row.get("qid") or row.get("id") or f"{source}-{idx:03d}"
+    question = (row.get("question") or row.get("query") or "").strip()
+    if not question:
+        raise ValueError(f"Evaluation item {qid} from {source} is missing `question`.")
+
+    return {
+        "qid": str(qid),
+        "question": question,
+        "type": row.get("type") or row.get("kind") or source,
+        "gold_passage_id": row.get("gold_passage_id") or None,
+        "expected_verdict": row.get("expected_verdict") or row.get("gold_verdict"),
+        "note": row.get("note", ""),
+        "source": source,
+    }
+
+
+def _normalize_many(rows: Iterable[dict], *, source: str) -> list[dict]:
+    return [_normalize_item(row, idx=i, source=source) for i, row in enumerate(rows, start=1)]
+
+
+def load_heldout_eval(heldout_path: str | Path) -> list[dict]:
+    """Load generated held-out retrieval items."""
+
+    return _normalize_many(_read_jsonl(heldout_path), source="heldout")
+
+
+def load_manual_eval(manual_path: str | Path = DEFAULT_MANUAL_EVAL_PATH) -> list[dict]:
+    """Load tracked manual/adversarial evaluation items."""
+
+    return _normalize_many(_read_jsonl(manual_path), source="manual")
+
+
+def build_eval_set(
+    heldout_path: str | Path,
+    manual_path: str | Path = DEFAULT_MANUAL_EVAL_PATH,
+    *,
+    eval_set: EvalSetName = "combined",
+) -> list[dict]:
+    """Return the requested evaluation split."""
+
+    if eval_set == "heldout":
+        return load_heldout_eval(heldout_path)
+    if eval_set == "manual":
+        return load_manual_eval(manual_path)
+    if eval_set == "combined":
+        return load_heldout_eval(heldout_path) + load_manual_eval(manual_path)
+    raise ValueError(f"Unknown eval_set: {eval_set}")

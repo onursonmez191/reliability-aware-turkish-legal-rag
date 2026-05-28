@@ -17,13 +17,13 @@ def run_topk_ablation(eval_items: Sequence[dict], ks: Sequence[int] = (3, 5, 8))
 
 def run_rerank_ablation(eval_items: Sequence[dict]) -> dict:
     cfg = load_config()
-    original = bool(cfg.retrieval.rerank.enabled)
+    candidate_k = int(cfg.retrieval.rerank.get("candidate_k", max(cfg.retrieval.top_k, 20)))
     out: dict = {"ablation": "rerank", "results": {}}
-    try:
-        cfg.retrieval.rerank["enabled"] = False
-        out["results"]["off"] = evaluate_retrieval(eval_items, k=cfg.retrieval.top_k)
-        cfg.retrieval.rerank["enabled"] = True
-        out["results"]["on"] = evaluate_retrieval(eval_items, k=cfg.retrieval.top_k)
-    finally:
-        cfg.retrieval.rerank["enabled"] = original
+    out["results"]["off"] = evaluate_retrieval(eval_items, k=cfg.retrieval.top_k)
+    out["results"]["on"] = evaluate_retrieval(
+        eval_items,
+        k=cfg.retrieval.top_k,
+        use_rerank=True,
+        candidate_k=candidate_k,
+    )
     return out

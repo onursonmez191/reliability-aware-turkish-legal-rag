@@ -25,9 +25,10 @@ def rerank(
     passages: Sequence[RetrievedPassage],
     keep_top: int | None = None,
     model_name: str | None = None,
+    force: bool = False,
 ) -> list[RetrievedPassage]:
     cfg = load_config()
-    if not cfg.retrieval.rerank.enabled:
+    if not force and not cfg.retrieval.rerank.enabled:
         return list(passages)
     if not passages:
         return []

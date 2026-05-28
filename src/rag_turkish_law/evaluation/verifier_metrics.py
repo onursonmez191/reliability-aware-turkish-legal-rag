@@ -11,7 +11,7 @@ from __future__ import annotations
 from collections import Counter
 from typing import Sequence
 
-LABELS = ("supported", "partial", "unsupported", "insufficient", "risk")
+LABELS = ("supported", "partial", "unsupported", "insufficient", "risk", "error")
 
 
 def compare(gold: Sequence[str], pred: Sequence[str]) -> dict:

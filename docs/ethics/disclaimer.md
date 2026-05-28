@@ -17,8 +17,8 @@ Turkish attorney.
   number (`[1]`, `[2]`, ...) and refuses or qualifies when context is
   insufficient.
 - Run a verifier pass that labels each atomic claim as `supported`,
-  `partial`, `unsupported`, `insufficient`, or `risk`, and surfaces an
-  overall reliability score.
+  `partial`, `unsupported`, `insufficient`, `risk`, or `error`, and
+  surfaces an overall reliability score.
 
 ## What the system does NOT do
 
@@ -47,6 +47,9 @@ Turkish attorney.
 - The generator can still produce errors even when the verifier marks
   claims as supported. The verifier is itself an LLM-judged pass and is
   not a guarantee of correctness.
+- A verifier `error` means the reliability check failed technically; it
+  does not mean the answer was verified or that the legal context is only
+  insufficient.
 - The system is Turkish-first. Mixing English or Arabic legal terms may
   degrade retrieval and verification quality.
 
