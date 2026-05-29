@@ -113,7 +113,9 @@ python scripts/build_index.py --limit 200
 ```
 
 Output goes to `data/processed/`. Re-run when you change the cleaning
-rules, the embedding model, or the corpus.
+rules, the embedding model, or the corpus. The default config indexes the
+OrionCAF QA corpus plus article-level passages for TBK, TMK, İş Kanunu, and
+TCK so the manual eval set can be reproduced with the normal build command.
 
 ## Run the demo
 
@@ -215,6 +217,7 @@ at a different file. Common knobs:
 - `models.available` — UI allowlist for selectable Ollama models
 - `models.default` — model selected by default in the UI
 - `models.keep_alive` — how long Ollama keeps a loaded model resident
+- `data.statutes.include_law_numbers` — primary-law coverage included in the index
 - `data.min_answer_chars` / `data.heldout_size` — preprocessing thresholds
 
 ## Notes on safety

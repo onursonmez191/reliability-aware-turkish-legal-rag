@@ -133,3 +133,17 @@ def matching_curated_sources(original_query: str, expanded_queries: Sequence[str
         matches.append((row, min(score, 0.98)))
 
     return matches
+
+
+def curated_context_filter_terms(matches: Sequence[tuple[dict, float]]) -> list[str]:
+    """Return strong terms non-curated hits must contain near curated matches.
+
+    The purpose is to keep generic high-scoring passages, such as unrelated
+    traffic-compensation snippets, out of the prompt when a precise curated
+    legal source already matches the question.
+    """
+    terms: list[str] = []
+    for row, _score in matches:
+        raw_terms = row.get("context_filter_terms") or []
+        terms.extend(_norm(str(term)) for term in raw_terms if str(term).strip())
+    return list(dict.fromkeys(terms))

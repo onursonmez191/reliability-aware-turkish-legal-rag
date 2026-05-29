@@ -10,7 +10,7 @@ import faiss
 import numpy as np
 
 from ..config import load_config
-from .curated import matching_curated_sources
+from .curated import curated_context_filter_terms, matching_curated_sources
 from . import embed
 from .index import load_index, load_meta
 from .query_expansion import expand_retrieval_queries
@@ -80,21 +80,37 @@ def retrieve(query: str, k: int | None = None) -> list[RetrievedPassage]:
     cfg = load_config()
     top_k = k or cfg.retrieval.top_k
     expanded_queries = expand_retrieval_queries(query)
+    curated_matches = matching_curated_sources(query, expanded_queries)
+    filter_terms = curated_context_filter_terms(curated_matches)
 
     by_id: dict[str, RetrievedPassage] = {}
+    vector_hit_counts: dict[str, int] = {}
     for retrieval_query in expanded_queries:
         for hit in _retrieve_single(retrieval_query, top_k):
+            if filter_terms and not _hit_has_any_term(hit, filter_terms):
+                continue
+            vector_hit_counts[hit.passage_id] = vector_hit_counts.get(hit.passage_id, 0) + 1
             current = by_id.get(hit.passage_id)
             if current is None or hit.score > current.score:
                 by_id[hit.passage_id] = hit
 
-    for row, score in matching_curated_sources(query, expanded_queries):
+    for passage_id, count in vector_hit_counts.items():
+        if count <= 1 or passage_id not in by_id:
+            continue
+        by_id[passage_id].score = min(by_id[passage_id].score + min(0.03, 0.01 * (count - 1)), 0.99)
+
+    for row, score in curated_matches:
         hit = _row_to_passage(row, score)
         current = by_id.get(hit.passage_id)
         if current is None or hit.score > current.score:
             by_id[hit.passage_id] = hit
 
     return sorted(by_id.values(), key=lambda h: h.score, reverse=True)[:top_k]
+
+
+def _hit_has_any_term(hit: RetrievedPassage, terms: Sequence[str]) -> bool:
+    blob = f"{hit.title} {hit.snippet} {hit.text}".casefold()
+    return any(term in blob for term in terms)
 
 
 def retrieve_many(queries: Sequence[str], k: int | None = None) -> list[list[RetrievedPassage]]:

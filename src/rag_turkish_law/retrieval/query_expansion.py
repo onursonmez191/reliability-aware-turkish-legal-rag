@@ -34,6 +34,39 @@ STRAY_EXPANSIONS = (
     "sahipsiz hayvan belediye sorumluluğu",
 )
 
+TENANCY_TRIGGERS = (
+    "kira",
+    "kiracı",
+    "kiraci",
+    "kiralanan",
+    "kiraya veren",
+    "ev sahibi",
+)
+
+TENANCY_EARLY_RETURN_TRIGGERS = (
+    "süresi dolmadan",
+    "suresi dolmadan",
+    "sözleşme bitmeden",
+    "sozlesme bitmeden",
+    "bitmeden",
+    "erken çık",
+    "erken cik",
+    "çıkabilir",
+    "cikabilir",
+    "çıkmak",
+    "cikmak",
+    "boşalt",
+    "bosalt",
+    "tahliye",
+)
+
+TENANCY_EARLY_RETURN_EXPANSIONS = (
+    "kiracı fesih dönemine uymaksızın kiralananı geri verdiğinde borçları makul süre devam eder",
+    "kiracı sözleşme süresine uymaksızın kiralananı geri verirse makul süre kira borcu",
+    "kiracının kabul edilebilir yeni kiracı bulması kira borçları sona erer",
+    "Türk Borçlar Kanunu madde 325 erken tahliye makul süre yeni kiracı",
+)
+
 LABOR_TRIGGERS = (
     "iş sözleşmesi",
     "is sozlesmesi",
@@ -72,13 +105,58 @@ INHERITANCE_TRIGGERS = (
     "tereke",
     "mirasçı",
     "mirasci",
+    "vefat",
+    "ölen",
+    "olen",
+    "murisin",
+    "muris",
+    "annemizin",
+    "babamızın",
+    "babamizin",
 )
 
 INHERITANCE_EXPANSIONS = (
     "miras hukuku mirasçı hakları",
+    "mirasçılık belgesi veraset ilamı",
+    "miras kalan taşınmaz tapu intikali",
+    "tapu intikali miras",
+    "elbirliği mülkiyeti miras ortaklığı",
+    "miras ortaklığının giderilmesi ortaklığın giderilmesi izale-i şuyu",
+    "miras payı taşınmaz paylaşımı",
     "tenkis davası saklı pay",
     "vasiyet iptali miras kanunu",
     "türk medeni kanunu miras",
+)
+
+INHERITANCE_PROPERTY_TRIGGERS = (
+    "tapu",
+    "tapusunu",
+    "tapuyu",
+    "intikal",
+    "devretmiyor",
+    "devretmeme",
+    "devir",
+    "dairenin",
+    "daire",
+    "taşınmaz",
+    "tasinmaz",
+    "ortaklığın giderilmesi",
+    "ortakligin giderilmesi",
+    "izale-i şuyu",
+    "izalei şuyu",
+    "izale-i suyu",
+    "izalei suyu",
+)
+
+FAMILY_INHERITANCE_TRIGGERS = (
+    "kardeş",
+    "kardes",
+    "anne",
+    "ana",
+    "baba",
+    "ebeveyn",
+    "annem",
+    "babam",
 )
 
 
@@ -107,9 +185,17 @@ def expand_retrieval_queries(query: str) -> list[str]:
         queries.extend(ANIMAL_EXPANSIONS)
     if any(term in normalized for term in STRAY_TRIGGERS):
         queries.extend(STRAY_EXPANSIONS)
+    has_tenancy_signal = any(term in normalized for term in TENANCY_TRIGGERS)
+    has_early_return_signal = any(term in normalized for term in TENANCY_EARLY_RETURN_TRIGGERS)
+    if has_tenancy_signal and has_early_return_signal:
+        queries.extend(TENANCY_EARLY_RETURN_EXPANSIONS)
     if any(term in normalized for term in LABOR_TRIGGERS):
         queries.extend(LABOR_EXPANSIONS)
-    if any(term in normalized for term in INHERITANCE_TRIGGERS):
+
+    has_inheritance_signal = any(term in normalized for term in INHERITANCE_TRIGGERS)
+    has_property_signal = any(term in normalized for term in INHERITANCE_PROPERTY_TRIGGERS)
+    has_family_signal = any(term in normalized for term in FAMILY_INHERITANCE_TRIGGERS)
+    if has_inheritance_signal or (has_property_signal and has_family_signal):
         queries.extend(INHERITANCE_EXPANSIONS)
 
     seen: set[str] = set()

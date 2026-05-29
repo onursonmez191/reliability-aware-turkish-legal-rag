@@ -20,12 +20,12 @@ data:
     dataset_name: muhammetakkurt/mevzuat-gov-dataset
     dataset_split: train
     min_article_chars: 40
-    # Start small and verify retrieval before widening. Empty list = all laws.
+    # Core demo/eval statute coverage. Empty list = all laws.
     include_law_numbers:
       - "6098"   # Türk Borçlar Kanunu
       - "4721"   # Türk Medeni Kanunu
-      # - "4857"   # İş Kanunu
-      # - "5237"   # Türk Ceza Kanunu
+      - "4857"   # İş Kanunu
+      - "5237"   # Türk Ceza Kanunu
 
 retrieval:
   embedding_model: intfloat/multilingual-e5-base
