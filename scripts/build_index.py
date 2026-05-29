@@ -73,10 +73,19 @@ def main() -> None:
         log.info("Adding %d article-level statute passages", len(statutes))
         corpus.extend(statutes)
 
-    curated_path = Path(cfg.paths.get("curated_sources_file", "data/curated/legal_sources.jsonl"))
-    curated = list(read_jsonl(curated_path)) if curated_path.exists() else []
+    curated_dir = Path(cfg.paths.get("curated_sources_file", "data/curated/legal_sources.jsonl")).parent
+    curated: list[dict] = []
+    seen_ids: set[str] = set()
+    for jsonl_path in sorted(curated_dir.glob("*.jsonl")):
+        for row in read_jsonl(jsonl_path):
+            pid = row.get("passage_id", "")
+            if pid and pid in seen_ids:
+                continue
+            if pid:
+                seen_ids.add(pid)
+            curated.append(row)
     if curated:
-        log.info("Adding %d curated legal passages from %s", len(curated), curated_path)
+        log.info("Adding %d curated passages from %s/", len(curated), curated_dir)
         corpus.extend(curated)
 
     log.info("Writing %d corpus passages → %s", len(corpus), cfg.paths.passages_file)
