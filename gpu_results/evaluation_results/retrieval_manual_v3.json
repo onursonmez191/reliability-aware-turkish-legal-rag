@@ -1,0 +1,1074 @@
+{
+  "n_total": 35,
+  "n_scored": 20,
+  "n_unscored": 15,
+  "k": 8,
+  "use_rerank": false,
+  "candidate_k": null,
+  "recall@3": 0.15,
+  "recall@5": 0.25,
+  "recall@8": 0.3,
+  "mrr": 0.1321,
+  "per_question": [
+    {
+      "qid": "SM-001",
+      "question": "Kira sözleşmesi bitmeden kiracı evden çıkabilir mi?",
+      "source": "manual",
+      "type": "natural_paraphrase",
+      "expected_verdict": "supported",
+      "gold_passage_id": null,
+      "top_ids": [
+        "P-014367",
+        "P-011375",
+        "P-006318",
+        "ART-TBK-0325",
+        "P-011378",
+        "P-011373",
+        "P-013905",
+        "ART-TBK-0334"
+      ],
+      "top_scores": [
+        0.9192,
+        0.9146,
+        0.9076,
+        0.9015,
+        0.894,
+        0.8889,
+        0.884,
+        0.881
+      ]
+    },
+    {
+      "qid": "SM-002",
+      "question": "İşten çıkarılan bir işçi hangi şartlarda kıdem tazminatı alabilir?",
+      "source": "manual",
+      "type": "natural_paraphrase",
+      "expected_verdict": "supported",
+      "gold_passage_id": null,
+      "top_ids": [
+        "ART-TBK-0432",
+        "P-017582",
+        "P-002478",
+        "P-017581",
+        "P-017535",
+        "P-002494",
+        "P-017630",
+        "P-017655"
+      ],
+      "top_scores": [
+        0.9186,
+        0.9131,
+        0.9097,
+        0.9083,
+        0.9067,
+        0.9064,
+        0.9059,
+        0.8994
+      ]
+    },
+    {
+      "qid": "SM-003",
+      "question": "Miras kalan ev kardeşler arasında nasıl paylaşılır?",
+      "source": "manual",
+      "type": "multi_part_case_specific",
+      "expected_verdict": "partial",
+      "gold_passage_id": null,
+      "top_ids": [
+        "P-007856",
+        "P-011612",
+        "P-010518",
+        "ART-TMK-0580",
+        "P-017849",
+        "P-002572",
+        "P-013095",
+        "P-002573"
+      ],
+      "top_scores": [
+        0.9113,
+        0.9048,
+        0.8883,
+        0.8833,
+        0.883,
+        0.883,
+        0.8822,
+        0.8814
+      ]
+    },
+    {
+      "qid": "SM-004",
+      "question": "Komşumla kavga ettim, bugün hemen dava açmam gerekir mi?",
+      "source": "manual",
+      "type": "risk_or_ambiguous",
+      "expected_verdict": "partial",
+      "gold_passage_id": null,
+      "top_ids": [
+        "P-015679",
+        "P-011404",
+        "P-015844",
+        "P-015795",
+        "P-011994",
+        "P-010580",
+        "P-015796",
+        "P-007091"
+      ],
+      "top_scores": [
+        0.8429,
+        0.8409,
+        0.8387,
+        0.8345,
+        0.8341,
+        0.8335,
+        0.8327,
+        0.8321
+      ]
+    },
+    {
+      "qid": "SM-005",
+      "question": "Türkiye'de 2027 yılında yürürlüğe girecek yeni kira kanunu ne diyor?",
+      "source": "manual",
+      "type": "unsupported_or_future",
+      "expected_verdict": "insufficient",
+      "gold_passage_id": null,
+      "top_ids": [
+        "P-011366",
+        "P-014361",
+        "ART-TBK-0647",
+        "P-015885",
+        "P-015890",
+        "P-011711",
+        "P-015901",
+        "P-011714"
+      ],
+      "top_scores": [
+        0.8502,
+        0.8469,
+        0.8432,
+        0.8428,
+        0.8426,
+        0.842,
+        0.8417,
+        0.8415
+      ]
+    },
+    {
+      "qid": "M-001",
+      "question": "Komşumun köpeği bana saldırdı, ne kadar tazminat alabilirim?",
+      "source": "manual",
+      "type": "risk_or_ambiguous",
+      "expected_verdict": "partial",
+      "gold_passage_id": "ART-TBK-0067",
+      "top_ids": [
+        "CUR-TBK-067",
+        "ART-TBK-0067",
+        "ART-TBK-0066"
+      ],
+      "top_scores": [
+        0.96,
+        0.9258,
+        0.8777
+      ],
+      "rank": 2,
+      "recall@3": 1,
+      "recall@5": 1,
+      "recall@8": 1,
+      "rr": 0.5
+    },
+    {
+      "qid": "M-002",
+      "question": "Kardeşim mirası bana devretmek istemiyor, ne yapayım?",
+      "source": "manual",
+      "type": "risk_or_ambiguous",
+      "expected_verdict": "partial",
+      "gold_passage_id": null,
+      "top_ids": [
+        "P-007856",
+        "P-011612",
+        "P-010518",
+        "ART-TMK-0580",
+        "P-017849",
+        "P-013095",
+        "P-007841",
+        "P-017906"
+      ],
+      "top_scores": [
+        0.9113,
+        0.9048,
+        0.8883,
+        0.8833,
+        0.883,
+        0.8822,
+        0.8803,
+        0.8789
+      ]
+    },
+    {
+      "qid": "M-003",
+      "question": "Trafik kazasında ölen yakınımın diyetini nasıl alırım?",
+      "source": "manual",
+      "type": "ambiguous_or_mixed",
+      "expected_verdict": "partial",
+      "gold_passage_id": null,
+      "top_ids": [
+        "P-007856",
+        "P-011612",
+        "P-010518",
+        "ART-TMK-0580",
+        "P-017849",
+        "P-013095",
+        "P-007841",
+        "P-017906"
+      ],
+      "top_scores": [
+        0.9113,
+        0.9048,
+        0.8883,
+        0.8833,
+        0.883,
+        0.8822,
+        0.8803,
+        0.8789
+      ]
+    },
+    {
+      "qid": "M-004",
+      "question": "Patronum maaşımı geç ödüyor, kaç gün sonra dava açabilirim?",
+      "source": "manual",
+      "type": "risk_or_ambiguous",
+      "expected_verdict": "partial",
+      "gold_passage_id": null,
+      "top_ids": [
+        "P-010132",
+        "P-012696",
+        "P-017637",
+        "P-013404",
+        "P-017568",
+        "P-007407",
+        "P-009359",
+        "P-010343"
+      ],
+      "top_scores": [
+        0.8573,
+        0.855,
+        0.854,
+        0.853,
+        0.8527,
+        0.8509,
+        0.8503,
+        0.8493
+      ]
+    },
+    {
+      "qid": "M-005",
+      "question": "Şirketim iflas etti, alacaklılara ne kadar borç ödenir?",
+      "source": "manual",
+      "type": "out_of_corpus",
+      "expected_verdict": "insufficient",
+      "gold_passage_id": null,
+      "top_ids": [
+        "P-003251",
+        "P-003081",
+        "P-004824",
+        "P-002710",
+        "P-006745",
+        "P-003663",
+        "P-013404",
+        "P-003222"
+      ],
+      "top_scores": [
+        0.8531,
+        0.8525,
+        0.8501,
+        0.8479,
+        0.8475,
+        0.8469,
+        0.8463,
+        0.8454
+      ]
+    },
+    {
+      "qid": "M-006",
+      "question": "Boşanma davası ne kadar sürer ve kim çocukları alır?",
+      "source": "manual",
+      "type": "multi_part_case_specific",
+      "expected_verdict": "partial",
+      "gold_passage_id": null,
+      "top_ids": [
+        "P-015436",
+        "P-015813",
+        "P-007216",
+        "P-012888",
+        "P-011011",
+        "P-011005",
+        "P-015348",
+        "P-015253"
+      ],
+      "top_scores": [
+        0.8664,
+        0.8646,
+        0.8627,
+        0.8615,
+        0.8606,
+        0.8603,
+        0.8597,
+        0.859
+      ]
+    },
+    {
+      "qid": "M-007",
+      "question": "Kira artış oranı yasal sınırı aştı mı, ev sahibi ne ister?",
+      "source": "manual",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "gold_passage_id": "ART-TBK-0344",
+      "top_ids": [
+        "P-007414",
+        "P-014599",
+        "P-014609",
+        "P-011474",
+        "P-007425",
+        "P-011459",
+        "P-011489",
+        "P-006226"
+      ],
+      "top_scores": [
+        0.8849,
+        0.8628,
+        0.8611,
+        0.8601,
+        0.8596,
+        0.8595,
+        0.8586,
+        0.8567
+      ],
+      "rank": null,
+      "recall@3": 0,
+      "recall@5": 0,
+      "recall@8": 0,
+      "rr": 0.0
+    },
+    {
+      "qid": "M-008",
+      "question": "Bir vatandaş gözaltına alındığında en geç ne kadar sürede hakim önüne çıkarılmalı?",
+      "source": "manual",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "gold_passage_id": "ART-CMK-0091",
+      "top_ids": [
+        "P-000593",
+        "ART-CMK-0094",
+        "P-000628",
+        "ART-CMK-0091",
+        "P-000629",
+        "ART-AY-0019",
+        "P-010434",
+        "P-011105"
+      ],
+      "top_scores": [
+        0.8913,
+        0.8673,
+        0.8638,
+        0.8615,
+        0.8603,
+        0.854,
+        0.8521,
+        0.8512
+      ],
+      "rank": 4,
+      "recall@3": 0,
+      "recall@5": 1,
+      "recall@8": 1,
+      "rr": 0.25
+    },
+    {
+      "qid": "M-009",
+      "question": "Sözleşme yapmadan başlayan iş ilişkisinde işçinin hakları nelerdir?",
+      "source": "manual",
+      "type": "natural_paraphrase",
+      "expected_verdict": "supported",
+      "gold_passage_id": null,
+      "top_ids": [
+        "ART-TBK-0432",
+        "P-014724",
+        "P-012695",
+        "P-014816",
+        "P-014818",
+        "ART-ISK-0017",
+        "P-014750",
+        "P-006182"
+      ],
+      "top_scores": [
+        0.9186,
+        0.8973,
+        0.8903,
+        0.8896,
+        0.8892,
+        0.8889,
+        0.8875,
+        0.8864
+      ]
+    },
+    {
+      "qid": "M-010",
+      "question": "Vasiyetname noterde mi yapılır, el yazısı yeterli mi?",
+      "source": "manual",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "gold_passage_id": "ART-TMK-0538",
+      "top_ids": [
+        "P-007856",
+        "P-011612",
+        "P-010518",
+        "ART-TMK-0538",
+        "ART-TMK-0580",
+        "P-017849",
+        "P-013095",
+        "P-007841"
+      ],
+      "top_scores": [
+        0.9113,
+        0.9048,
+        0.8883,
+        0.8855,
+        0.8833,
+        0.883,
+        0.8822,
+        0.8803
+      ],
+      "rank": 4,
+      "recall@3": 0,
+      "recall@5": 1,
+      "recall@8": 1,
+      "rr": 0.25
+    },
+    {
+      "qid": "M-011",
+      "question": "Komşunun köpeği bahçemdeki hayvanlara zarar verdi; hayvan sahibinin sorumluluğu nedir?",
+      "source": "manual",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "gold_passage_id": "ART-TBK-0067",
+      "top_ids": [
+        "CUR-TBK-067",
+        "ART-TBK-0067",
+        "ART-TBK-0066"
+      ],
+      "top_scores": [
+        0.96,
+        0.9258,
+        0.8777
+      ],
+      "rank": 2,
+      "recall@3": 1,
+      "recall@5": 1,
+      "recall@8": 1,
+      "rr": 0.5
+    },
+    {
+      "qid": "M-012",
+      "question": "Haksız bir fiille zarara uğrayan kişinin tazminat talep etme hakkı neye dayanır?",
+      "source": "manual",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "gold_passage_id": "ART-TBK-0049",
+      "top_ids": [
+        "P-013660",
+        "P-000459",
+        "ART-TTK-0560",
+        "P-003246",
+        "P-000683",
+        "P-012069",
+        "P-001102",
+        "ART-TMK-0025"
+      ],
+      "top_scores": [
+        0.8655,
+        0.8642,
+        0.8629,
+        0.8628,
+        0.8623,
+        0.8599,
+        0.858,
+        0.8579
+      ],
+      "rank": null,
+      "recall@3": 0,
+      "recall@5": 0,
+      "recall@8": 0,
+      "rr": 0.0
+    },
+    {
+      "qid": "M-013",
+      "question": "Kiracı kira bedelini ödemezse ev sahibi sözleşmeyi nasıl sona erdirebilir?",
+      "source": "manual",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "gold_passage_id": "ART-TBK-0315",
+      "top_ids": [
+        "P-013905",
+        "P-015883",
+        "P-015895",
+        "P-006145",
+        "P-011402",
+        "P-006221",
+        "P-015896",
+        "ART-TBK-0352"
+      ],
+      "top_scores": [
+        0.8922,
+        0.8922,
+        0.8895,
+        0.8857,
+        0.8843,
+        0.8834,
+        0.8787,
+        0.8783
+      ],
+      "rank": null,
+      "recall@3": 0,
+      "recall@5": 0,
+      "recall@8": 0,
+      "rr": 0.0
+    },
+    {
+      "qid": "M-014",
+      "question": "Bir sözleşme önemli bir yanılma (hata) sonucu yapılmışsa akıbeti ne olur?",
+      "source": "manual",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "gold_passage_id": "ART-TBK-0030",
+      "top_ids": [
+        "P-009788",
+        "P-009780",
+        "P-009791",
+        "P-012848",
+        "P-009793",
+        "P-009783",
+        "P-003584",
+        "P-009782"
+      ],
+      "top_scores": [
+        0.8729,
+        0.871,
+        0.8698,
+        0.8655,
+        0.8642,
+        0.8604,
+        0.8586,
+        0.8585
+      ],
+      "rank": null,
+      "recall@3": 0,
+      "recall@5": 0,
+      "recall@8": 0,
+      "rr": 0.0
+    },
+    {
+      "qid": "M-015",
+      "question": "Genel zamanaşımı süresi kaç yıldır?",
+      "source": "manual",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "gold_passage_id": "ART-TBK-0146",
+      "top_ids": [
+        "P-015962",
+        "P-014677",
+        "P-008970",
+        "P-005276",
+        "P-000110",
+        "P-008971",
+        "P-016651",
+        "P-015980"
+      ],
+      "top_scores": [
+        0.8622,
+        0.8558,
+        0.8545,
+        0.8545,
+        0.8536,
+        0.8536,
+        0.8535,
+        0.8516
+      ],
+      "rank": null,
+      "recall@3": 0,
+      "recall@5": 0,
+      "recall@8": 0,
+      "rr": 0.0
+    },
+    {
+      "qid": "M-016",
+      "question": "Nişan bozulursa yapılan harcamalar için tazminat istenebilir mi?",
+      "source": "manual",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "gold_passage_id": "ART-TMK-0120",
+      "top_ids": [
+        "ART-TMK-0120",
+        "P-015828",
+        "P-015256",
+        "P-015205",
+        "P-007185",
+        "P-011013",
+        "P-015662",
+        "P-007222"
+      ],
+      "top_scores": [
+        0.8906,
+        0.8663,
+        0.8657,
+        0.8651,
+        0.863,
+        0.8613,
+        0.8588,
+        0.8569
+      ],
+      "rank": 1,
+      "recall@3": 1,
+      "recall@5": 1,
+      "recall@8": 1,
+      "rr": 1.0
+    },
+    {
+      "qid": "M-017",
+      "question": "Evlilik içinde edinilen mallar boşanmada nasıl paylaşılır?",
+      "source": "manual",
+      "type": "statute_targeted",
+      "expected_verdict": "partial",
+      "gold_passage_id": "ART-TMK-0219",
+      "top_ids": [
+        "P-015172",
+        "P-016882",
+        "P-017056",
+        "P-015177",
+        "P-017047",
+        "P-016874",
+        "P-016873",
+        "ART-TMK-0277"
+      ],
+      "top_scores": [
+        0.8932,
+        0.8919,
+        0.888,
+        0.8851,
+        0.8744,
+        0.8731,
+        0.8703,
+        0.8699
+      ],
+      "rank": null,
+      "recall@3": 0,
+      "recall@5": 0,
+      "recall@8": 0,
+      "rr": 0.0
+    },
+    {
+      "qid": "M-018",
+      "question": "Mirasçı, kendisine kalan mirası reddedebilir mi?",
+      "source": "manual",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "gold_passage_id": "ART-TMK-0605",
+      "top_ids": [
+        "P-007856",
+        "P-010625",
+        "P-011612",
+        "P-013344",
+        "P-013354",
+        "P-013351",
+        "P-017845",
+        "P-002429"
+      ],
+      "top_scores": [
+        0.9113,
+        0.9085,
+        0.9048,
+        0.8941,
+        0.8929,
+        0.8928,
+        0.8917,
+        0.891
+      ],
+      "rank": null,
+      "recall@3": 0,
+      "recall@5": 0,
+      "recall@8": 0,
+      "rr": 0.0
+    },
+    {
+      "qid": "M-019",
+      "question": "Boşanmada çocuğun velayeti kime ve hangi ölçüte göre verilir?",
+      "source": "manual",
+      "type": "multi_part_case_specific",
+      "expected_verdict": "partial",
+      "gold_passage_id": null,
+      "top_ids": [
+        "P-015259",
+        "P-015436",
+        "P-015456",
+        "P-015441",
+        "P-011019",
+        "P-015471",
+        "P-007480",
+        "P-007180"
+      ],
+      "top_scores": [
+        0.8966,
+        0.8953,
+        0.8947,
+        0.8878,
+        0.8872,
+        0.8861,
+        0.8814,
+        0.8809
+      ]
+    },
+    {
+      "qid": "M-020",
+      "question": "Bir işçi günde/haftada ne kadar fazla mesai yapabilir ve ücreti nasıl hesaplanır?",
+      "source": "manual",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "gold_passage_id": "ART-ISK-0041",
+      "top_ids": [
+        "ART-TBK-0432",
+        "P-014724",
+        "P-012695",
+        "P-014816",
+        "P-014818",
+        "ART-ISK-0017",
+        "P-016028",
+        "P-014750"
+      ],
+      "top_scores": [
+        0.9186,
+        0.8973,
+        0.8903,
+        0.8896,
+        0.8892,
+        0.8889,
+        0.8887,
+        0.8875
+      ],
+      "rank": null,
+      "recall@3": 0,
+      "recall@5": 0,
+      "recall@8": 0,
+      "rr": 0.0
+    },
+    {
+      "qid": "M-021",
+      "question": "İşveren işçiyi hangi hallerde haklı nedenle derhal işten çıkarabilir?",
+      "source": "manual",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "gold_passage_id": "ART-ISK-0025",
+      "top_ids": [
+        "ART-TBK-0432",
+        "P-014724",
+        "P-012695",
+        "P-014816",
+        "P-014818",
+        "ART-ISK-0017",
+        "P-014750",
+        "P-006182"
+      ],
+      "top_scores": [
+        0.9186,
+        0.8973,
+        0.8903,
+        0.8896,
+        0.8892,
+        0.8889,
+        0.8875,
+        0.8864
+      ],
+      "rank": null,
+      "recall@3": 0,
+      "recall@5": 0,
+      "recall@8": 0,
+      "rr": 0.0
+    },
+    {
+      "qid": "M-022",
+      "question": "Yıllık ücretli izne hak kazanmak için ne kadar çalışmak gerekir?",
+      "source": "manual",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "gold_passage_id": "ART-ISK-0053",
+      "top_ids": [
+        "P-015925",
+        "P-016073",
+        "P-015995",
+        "P-015996",
+        "P-015926",
+        "ART-ISK-0054",
+        "P-016010",
+        "P-016016"
+      ],
+      "top_scores": [
+        0.9017,
+        0.8998,
+        0.8923,
+        0.8881,
+        0.8873,
+        0.8838,
+        0.8825,
+        0.8792
+      ],
+      "rank": null,
+      "recall@3": 0,
+      "recall@5": 0,
+      "recall@8": 0,
+      "rr": 0.0
+    },
+    {
+      "qid": "M-023",
+      "question": "Sosyal medyada birine hakaret etmek suç mudur?",
+      "source": "manual",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "gold_passage_id": "ART-TCK-0125",
+      "top_ids": [
+        "P-001176",
+        "P-015132",
+        "P-001251",
+        "P-016458",
+        "P-016451",
+        "P-016467",
+        "P-001181",
+        "P-001177"
+      ],
+      "top_scores": [
+        0.8813,
+        0.8772,
+        0.8755,
+        0.874,
+        0.873,
+        0.8725,
+        0.8725,
+        0.8719
+      ],
+      "rank": null,
+      "recall@3": 0,
+      "recall@5": 0,
+      "recall@8": 0,
+      "rr": 0.0
+    },
+    {
+      "qid": "M-024",
+      "question": "Bir kişiyi tehdit etmenin cezai sonucu nedir?",
+      "source": "manual",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "gold_passage_id": "ART-TCK-0106",
+      "top_ids": [
+        "P-016259",
+        "P-010921",
+        "P-004305",
+        "P-004253",
+        "P-004262",
+        "P-010892",
+        "ART-TCK-0106",
+        "P-016230"
+      ],
+      "top_scores": [
+        0.8718,
+        0.8716,
+        0.8674,
+        0.8667,
+        0.8606,
+        0.8603,
+        0.8591,
+        0.859
+      ],
+      "rank": 7,
+      "recall@3": 0,
+      "recall@5": 0,
+      "recall@8": 1,
+      "rr": 0.14285714285714285
+    },
+    {
+      "qid": "M-025",
+      "question": "Hırsızlık suçunun temel hali nasıl tanımlanır?",
+      "source": "manual",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "gold_passage_id": "ART-TCK-0141",
+      "top_ids": [
+        "ART-TCK-0144",
+        "P-003688",
+        "P-010686",
+        "ART-TCK-0146",
+        "ART-TCK-0143",
+        "ART-TCK-0142",
+        "ART-TCK-0145",
+        "P-004275"
+      ],
+      "top_scores": [
+        0.8655,
+        0.8585,
+        0.8519,
+        0.8471,
+        0.8439,
+        0.8423,
+        0.8375,
+        0.8374
+      ],
+      "rank": null,
+      "recall@3": 0,
+      "recall@5": 0,
+      "recall@8": 0,
+      "rr": 0.0
+    },
+    {
+      "qid": "M-026",
+      "question": "Manevi tazminat hangi durumlarda istenebilir?",
+      "source": "manual",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "gold_passage_id": "ART-TBK-0058",
+      "top_ids": [
+        "P-011600",
+        "P-006921",
+        "P-007226",
+        "P-013528",
+        "P-001100",
+        "P-007189",
+        "P-016847",
+        "P-015223"
+      ],
+      "top_scores": [
+        0.922,
+        0.9219,
+        0.9179,
+        0.9098,
+        0.9092,
+        0.9072,
+        0.9072,
+        0.9068
+      ],
+      "rank": null,
+      "recall@3": 0,
+      "recall@5": 0,
+      "recall@8": 0,
+      "rr": 0.0
+    },
+    {
+      "qid": "M-027",
+      "question": "İcra takibinde borçlunun malları nasıl haczedilir?",
+      "source": "manual",
+      "type": "out_of_corpus",
+      "expected_verdict": "insufficient",
+      "gold_passage_id": null,
+      "top_ids": [
+        "P-006727",
+        "P-007399",
+        "P-006864",
+        "P-007867",
+        "P-007863",
+        "P-014942",
+        "P-007864",
+        "P-005387"
+      ],
+      "top_scores": [
+        0.8975,
+        0.8849,
+        0.8746,
+        0.8725,
+        0.8718,
+        0.8699,
+        0.8693,
+        0.8653
+      ]
+    },
+    {
+      "qid": "M-028",
+      "question": "2026 yılı gelir vergisi dilimleri nelerdir?",
+      "source": "manual",
+      "type": "out_of_corpus",
+      "expected_verdict": "insufficient",
+      "gold_passage_id": null,
+      "top_ids": [
+        "ART-GVK-0102",
+        "P-010065",
+        "ART-GVK-0086",
+        "ART-GVK-0087",
+        "P-010143",
+        "ART-GVK-0022",
+        "ART-GVK-0048",
+        "ART-GVK-0069"
+      ],
+      "top_scores": [
+        0.8424,
+        0.8354,
+        0.8336,
+        0.8334,
+        0.8317,
+        0.8308,
+        0.8283,
+        0.8278
+      ]
+    },
+    {
+      "qid": "M-029",
+      "question": "Davayı kazanırsam tam olarak kaç TL manevi tazminat alırım?",
+      "source": "manual",
+      "type": "risk_or_ambiguous",
+      "expected_verdict": "partial",
+      "gold_passage_id": "ART-TBK-0058",
+      "top_ids": [
+        "P-008693",
+        "ART-TBK-0056",
+        "P-006921",
+        "P-006923",
+        "P-016848",
+        "P-011016",
+        "P-010914",
+        "P-015239"
+      ],
+      "top_scores": [
+        0.8725,
+        0.8718,
+        0.8699,
+        0.8695,
+        0.8685,
+        0.8677,
+        0.8675,
+        0.8672
+      ],
+      "rank": null,
+      "recall@3": 0,
+      "recall@5": 0,
+      "recall@8": 0,
+      "rr": 0.0
+    },
+    {
+      "qid": "M-030",
+      "question": "Eşimden hemen boşanmak için bugün ne yapmam gerekiyor?",
+      "source": "manual",
+      "type": "risk_or_ambiguous",
+      "expected_verdict": "partial",
+      "gold_passage_id": null,
+      "top_ids": [
+        "P-011001",
+        "P-012874",
+        "P-012869",
+        "P-015594",
+        "P-015602",
+        "P-015605",
+        "P-015511",
+        "P-015607"
+      ],
+      "top_scores": [
+        0.8454,
+        0.843,
+        0.8427,
+        0.8422,
+        0.8412,
+        0.8398,
+        0.8392,
+        0.8382
+      ]
+    }
+  ]
+}

@@ -1,0 +1,321 @@
+{
+  "n_expected": 35,
+  "accuracy": 0.5143,
+  "per_question": [
+    {
+      "qid": "SM-001",
+      "question": "Kira sözleşmesi bitmeden kiracı evden çıkabilir mi?",
+      "type": "natural_paraphrase",
+      "expected_verdict": "supported",
+      "predicted_verdict": "supported",
+      "match": true,
+      "error": null
+    },
+    {
+      "qid": "SM-002",
+      "question": "İşten çıkarılan bir işçi hangi şartlarda kıdem tazminatı alabilir?",
+      "type": "natural_paraphrase",
+      "expected_verdict": "supported",
+      "predicted_verdict": "supported",
+      "match": true,
+      "error": null
+    },
+    {
+      "qid": "SM-003",
+      "question": "Miras kalan ev kardeşler arasında nasıl paylaşılır?",
+      "type": "multi_part_case_specific",
+      "expected_verdict": "partial",
+      "predicted_verdict": "supported",
+      "match": false,
+      "error": null
+    },
+    {
+      "qid": "SM-004",
+      "question": "Komşumla kavga ettim, bugün hemen dava açmam gerekir mi?",
+      "type": "risk_or_ambiguous",
+      "expected_verdict": "partial",
+      "predicted_verdict": "unsupported",
+      "match": false,
+      "error": null
+    },
+    {
+      "qid": "SM-005",
+      "question": "Türkiye'de 2027 yılında yürürlüğe girecek yeni kira kanunu ne diyor?",
+      "type": "unsupported_or_future",
+      "expected_verdict": "insufficient",
+      "predicted_verdict": "unsupported",
+      "match": false,
+      "error": null
+    },
+    {
+      "qid": "M-001",
+      "question": "Komşumun köpeği bana saldırdı, ne kadar tazminat alabilirim?",
+      "type": "risk_or_ambiguous",
+      "expected_verdict": "partial",
+      "predicted_verdict": "partial",
+      "match": true,
+      "error": null
+    },
+    {
+      "qid": "M-002",
+      "question": "Kardeşim mirası bana devretmek istemiyor, ne yapayım?",
+      "type": "risk_or_ambiguous",
+      "expected_verdict": "partial",
+      "predicted_verdict": "unsupported",
+      "match": false,
+      "error": null
+    },
+    {
+      "qid": "M-003",
+      "question": "Trafik kazasında ölen yakınımın diyetini nasıl alırım?",
+      "type": "ambiguous_or_mixed",
+      "expected_verdict": "partial",
+      "predicted_verdict": "unsupported",
+      "match": false,
+      "error": null
+    },
+    {
+      "qid": "M-004",
+      "question": "Patronum maaşımı geç ödüyor, kaç gün sonra dava açabilirim?",
+      "type": "risk_or_ambiguous",
+      "expected_verdict": "partial",
+      "predicted_verdict": "unsupported",
+      "match": false,
+      "error": null
+    },
+    {
+      "qid": "M-005",
+      "question": "Şirketim iflas etti, alacaklılara ne kadar borç ödenir?",
+      "type": "out_of_corpus",
+      "expected_verdict": "insufficient",
+      "predicted_verdict": "unsupported",
+      "match": false,
+      "error": null
+    },
+    {
+      "qid": "M-006",
+      "question": "Boşanma davası ne kadar sürer ve kim çocukları alır?",
+      "type": "multi_part_case_specific",
+      "expected_verdict": "partial",
+      "predicted_verdict": "supported",
+      "match": false,
+      "error": null
+    },
+    {
+      "qid": "M-007",
+      "question": "Kira artış oranı yasal sınırı aştı mı, ev sahibi ne ister?",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "predicted_verdict": "supported",
+      "match": true,
+      "error": null
+    },
+    {
+      "qid": "M-008",
+      "question": "Bir vatandaş gözaltına alındığında en geç ne kadar sürede hakim önüne çıkarılmalı?",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "predicted_verdict": "supported",
+      "match": true,
+      "error": null
+    },
+    {
+      "qid": "M-009",
+      "question": "Sözleşme yapmadan başlayan iş ilişkisinde işçinin hakları nelerdir?",
+      "type": "natural_paraphrase",
+      "expected_verdict": "supported",
+      "predicted_verdict": "unsupported",
+      "match": false,
+      "error": null
+    },
+    {
+      "qid": "M-010",
+      "question": "Vasiyetname noterde mi yapılır, el yazısı yeterli mi?",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "predicted_verdict": "supported",
+      "match": true,
+      "error": null
+    },
+    {
+      "qid": "M-011",
+      "question": "Komşunun köpeği bahçemdeki hayvanlara zarar verdi; hayvan sahibinin sorumluluğu nedir?",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "predicted_verdict": "supported",
+      "match": true,
+      "error": null
+    },
+    {
+      "qid": "M-012",
+      "question": "Haksız bir fiille zarara uğrayan kişinin tazminat talep etme hakkı neye dayanır?",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "predicted_verdict": "supported",
+      "match": true,
+      "error": null
+    },
+    {
+      "qid": "M-013",
+      "question": "Kiracı kira bedelini ödemezse ev sahibi sözleşmeyi nasıl sona erdirebilir?",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "predicted_verdict": "unsupported",
+      "match": false,
+      "error": null
+    },
+    {
+      "qid": "M-014",
+      "question": "Bir sözleşme önemli bir yanılma (hata) sonucu yapılmışsa akıbeti ne olur?",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "predicted_verdict": "supported",
+      "match": true,
+      "error": null
+    },
+    {
+      "qid": "M-015",
+      "question": "Genel zamanaşımı süresi kaç yıldır?",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "predicted_verdict": "supported",
+      "match": true,
+      "error": null
+    },
+    {
+      "qid": "M-016",
+      "question": "Nişan bozulursa yapılan harcamalar için tazminat istenebilir mi?",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "predicted_verdict": "supported",
+      "match": true,
+      "error": null
+    },
+    {
+      "qid": "M-017",
+      "question": "Evlilik içinde edinilen mallar boşanmada nasıl paylaşılır?",
+      "type": "statute_targeted",
+      "expected_verdict": "partial",
+      "predicted_verdict": "supported",
+      "match": false,
+      "error": null
+    },
+    {
+      "qid": "M-018",
+      "question": "Mirasçı, kendisine kalan mirası reddedebilir mi?",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "predicted_verdict": "supported",
+      "match": true,
+      "error": null
+    },
+    {
+      "qid": "M-019",
+      "question": "Boşanmada çocuğun velayeti kime ve hangi ölçüte göre verilir?",
+      "type": "multi_part_case_specific",
+      "expected_verdict": "partial",
+      "predicted_verdict": "supported",
+      "match": false,
+      "error": null
+    },
+    {
+      "qid": "M-020",
+      "question": "Bir işçi günde/haftada ne kadar fazla mesai yapabilir ve ücreti nasıl hesaplanır?",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "predicted_verdict": "partial",
+      "match": false,
+      "error": null
+    },
+    {
+      "qid": "M-021",
+      "question": "İşveren işçiyi hangi hallerde haklı nedenle derhal işten çıkarabilir?",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "predicted_verdict": "supported",
+      "match": true,
+      "error": null
+    },
+    {
+      "qid": "M-022",
+      "question": "Yıllık ücretli izne hak kazanmak için ne kadar çalışmak gerekir?",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "predicted_verdict": "supported",
+      "match": true,
+      "error": null
+    },
+    {
+      "qid": "M-023",
+      "question": "Sosyal medyada birine hakaret etmek suç mudur?",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "predicted_verdict": "partial",
+      "match": false,
+      "error": null
+    },
+    {
+      "qid": "M-024",
+      "question": "Bir kişiyi tehdit etmenin cezai sonucu nedir?",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "predicted_verdict": "supported",
+      "match": true,
+      "error": null
+    },
+    {
+      "qid": "M-025",
+      "question": "Hırsızlık suçunun temel hali nasıl tanımlanır?",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "predicted_verdict": "partial",
+      "match": false,
+      "error": null
+    },
+    {
+      "qid": "M-026",
+      "question": "Manevi tazminat hangi durumlarda istenebilir?",
+      "type": "statute_targeted",
+      "expected_verdict": "supported",
+      "predicted_verdict": "supported",
+      "match": true,
+      "error": null
+    },
+    {
+      "qid": "M-027",
+      "question": "İcra takibinde borçlunun malları nasıl haczedilir?",
+      "type": "out_of_corpus",
+      "expected_verdict": "insufficient",
+      "predicted_verdict": "supported",
+      "match": false,
+      "error": null
+    },
+    {
+      "qid": "M-028",
+      "question": "2026 yılı gelir vergisi dilimleri nelerdir?",
+      "type": "out_of_corpus",
+      "expected_verdict": "insufficient",
+      "predicted_verdict": "partial",
+      "match": false,
+      "error": null
+    },
+    {
+      "qid": "M-029",
+      "question": "Davayı kazanırsam tam olarak kaç TL manevi tazminat alırım?",
+      "type": "risk_or_ambiguous",
+      "expected_verdict": "partial",
+      "predicted_verdict": "partial",
+      "match": true,
+      "error": null
+    },
+    {
+      "qid": "M-030",
+      "question": "Eşimden hemen boşanmak için bugün ne yapmam gerekiyor?",
+      "type": "risk_or_ambiguous",
+      "expected_verdict": "partial",
+      "predicted_verdict": "partial",
+      "match": true,
+      "error": null
+    }
+  ]
+}

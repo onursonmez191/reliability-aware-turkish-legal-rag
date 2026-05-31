@@ -3,8 +3,9 @@
 This rubric defines how to assign `expected_verdict` to a question in
 `manual_eval.jsonl`. The verdict is the **overall reliability label** a correct
 system *should* return for that question, given the current corpus
-(OrionCAF QA passages + article-level statutes: TBK 6098, TMK 4721,
-İş K. 4857, TCK 5237).
+(OrionCAF QA passages + scraped statute articles from `data/curated/law_articles.jsonl`:
+TBK 6098, TMK 4721, TCK 5237, İş K. 4857, TTK 6102, HMK 6100, CMK 5271,
+Anayasa 2709, Vergi/KDV/GVK, SGK, Kat Mülkiyeti, İYUK — 15 kanun, 5492 madde).
 
 > The verdict describes the reliability of the **answer the system should
 > produce**, not the difficulty of the question. Re-annotate whenever the

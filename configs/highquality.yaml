@@ -15,17 +15,10 @@ data:
   min_answer_chars: 60
   heldout_size: 50
   seed: 42
+  # HF statute loader disabled: scraped law_articles.jsonl (data/curated/)
+  # provides broader coverage (15 laws, 5492 articles) via the curated path.
   statutes:
-    enabled: true
-    dataset_name: muhammetakkurt/mevzuat-gov-dataset
-    dataset_split: train
-    min_article_chars: 40
-    # Full core-code coverage for the big run.
-    include_law_numbers:
-      - "6098"   # Türk Borçlar Kanunu
-      - "4721"   # Türk Medeni Kanunu
-      - "4857"   # İş Kanunu
-      - "5237"   # Türk Ceza Kanunu
+    enabled: false
 
 retrieval:
   embedding_model: intfloat/multilingual-e5-large   # upgraded from e5-base

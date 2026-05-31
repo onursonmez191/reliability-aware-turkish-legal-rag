@@ -199,8 +199,28 @@ def _title_from_text(art_text: str, max_chars: int = 90) -> str:
     return art_text[:min(end, max_chars)].strip()
 
 
+_TRAILING_HEADING_RE = re.compile(
+    r"(?:\s+(?:\d{1,3}|[IVXLCDM]{1,6}|[a-zçğıöşü])\.\s+[^.!?]+?)+\s*$"
+)
+
+
+def _strip_trailing_heading(text: str) -> str:
+    """Remove next-article side-heading fragments appended to article text.
+
+    The PDF parser often attaches the next article's section heading to the
+    end of the current article, e.g. '...açık veya örtülü olabilir.
+    2. İkinci derecedeki noktalar'. This strips that trailing run.
+    """
+    cleaned = _TRAILING_HEADING_RE.sub("", text).strip()
+    if cleaned == text:
+        return text
+    if len(cleaned) >= 20 and cleaned[-1] in ".!?…":
+        return cleaned
+    return text
+
+
 def _clean_article_text(raw: str) -> str:
-    """Remove page-break artefacts and normalise whitespace."""
+    """Remove page-break artefacts, normalise whitespace, strip heading noise."""
     lines = raw.splitlines()
     cleaned: list[str] = []
     for line in lines:
@@ -209,7 +229,7 @@ def _clean_article_text(raw: str) -> str:
         if not stripped or re.fullmatch(r"\d{1,4}", stripped):
             continue
         cleaned.append(stripped)
-    return " ".join(cleaned)
+    return _strip_trailing_heading(" ".join(cleaned))
 
 
 _TRIVIAL_HEADING = re.compile(
