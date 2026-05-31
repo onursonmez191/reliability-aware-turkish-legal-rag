@@ -18,7 +18,7 @@ Anayasa 2709, Vergi/KDV/GVK, SGK, Kat Mülkiyeti, İYUK — 15 kanun, 5492 madde
 | **supported** | The topic is covered by the corpus and a correct answer's key claims are each directly backed by retrieved passages (a statute article or a QA passage). Single-topic, fully grounded. |
 | **partial** | The core is grounded, but (a) the question is multi-part and only some parts are covered, or (b) a safe answer must leave some sub-claims general/unstated (e.g. it grounds liability but declines a case-specific amount). |
 | **unsupported** | Relevant, on-topic passages are retrieved, but they do **not** actually back the answer's claims (the answer would contradict or go beyond what the passages say). |
-| **insufficient** | The corpus does not cover the topic at all (no relevant passages). The system should refuse rather than answer. Includes future/non-existent law and laws not yet indexed (e.g. İcra-İflas, Vergi, idare mevzuatı). |
+| **insufficient** | The corpus does not cover the topic at all (no relevant passages). The system should refuse rather than answer. Includes future/non-existent law, time-dependent values that are not captured in the static corpus, and laws not yet indexed (e.g. İcra-İflas Kanunu). |
 | **risk** | A correct answer would still legitimately contain a case-specific legal-advice statement that trips the risk layer: a concrete money amount, an imperative action ("dava açın"), or absolute certainty ("kesinlikle"). |
 
 ## The `risk` decision (important, team-adjustable)
@@ -45,7 +45,7 @@ flip those `expected_verdict`s to `risk` and add the classifier.
 - `qid`, `question`, `type` — id, the Turkish question, a coarse category.
 - `expected_verdict` — the label from this rubric.
 - `gold_passage_id` — optional; the passage that should ground the answer
-  (e.g. `LAW-6098-M67`). Fill when known; enables passage-level retrieval scoring.
+  (e.g. `ART-TBK-0067`). Fill when known; enables passage-level retrieval scoring.
 - `risk_question` — `true` if the question solicits case-specific advice (see above).
 - `note` — one-line rationale (and the previous label when re-annotated).
 

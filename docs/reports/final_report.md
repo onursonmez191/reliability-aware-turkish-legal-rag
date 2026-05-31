@@ -13,9 +13,13 @@ project proposal (`docs/original_materials/CS455_Proposal_Sonmez_Sozer_Erseker.p
 React UI → FastAPI backend → (retrieval → generation → verification).
 
 ### 2.2 Data
-- Source: `OrionCAF/turkish_law_qa_dataset` (Hugging Face).
+- Sources: `OrionCAF/turkish_law_qa_dataset` (Hugging Face) plus
+  scraped article-level statute passages in `data/curated/law_articles.jsonl`.
 - Preprocessing: deduplication by normalized question hash, drop empty or
   too-short answers, NFKC + HTML strip + whitespace normalize.
+- Statute cleanup: article-level passages are parsed from public
+  mevzuat.gov.tr PDFs and normalized to remove common PDF heading/footnote
+  artifacts.
 - Held-out: 50 records reserved with `gold_passage_id` for retrieval
   evaluation.
 - See `data/processed/preprocessing_report.md` for the exact counts.
@@ -78,9 +82,13 @@ discuss the root causes.*
 
 ## 5. Limitations
 
-- Corpus is QA/explanation style, not official statute text.
+- Corpus is still incomplete: it mixes QA/explanation passages with a
+  selected scraped statute set, but does not cover every Turkish legal source,
+  amendments, secondary legislation, or case law.
+- PDF extraction can introduce residual heading/noise artifacts.
 - Verifier is itself an LLM and inherits its biases.
-- Free Inference API rate limits affect throughput.
+- Large local Ollama models improve Turkish fluency but increase latency and
+  memory pressure.
 
 ## 6. Ethics and educational-use framing
 
@@ -88,7 +96,7 @@ See `docs/ethics/disclaimer.md`.
 
 ## 7. Future work
 
-- Add statute-snippet sub-corpus for grounding completeness.
+- Expand the statute/case-law corpus and add stronger source freshness checks.
 - Replace sentence-based claim splitter with an LLM-based atomizer.
 - Try a fine-tuned Turkish reranker on the corpus.
 

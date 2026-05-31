@@ -32,7 +32,7 @@ from typing import Iterator
 try:
     import fitz  # PyMuPDF
 except ImportError:
-    sys.exit("PyMuPDF not installed. Run: pip install pymupdf")
+    fitz = None
 
 log = logging.getLogger("scrape_mevzuat")
 
@@ -86,11 +86,15 @@ _TR_ASCII = str.maketrans("çğışöüÇĞİŞÖÜ", "cgisouCGISOu")  # ı→i,
 
 
 def to_ascii(text: str) -> str:
-    return text.translate(_TR_ASCII)
+    asciiish = text.translate(_TR_ASCII)
+    return "".join(
+        ch for ch in unicodedata.normalize("NFKD", asciiish)
+        if unicodedata.category(ch) != "Mn"
+    )
 
 
 def _norm(text: str) -> str:
-    return unicodedata.normalize("NFKC", text).casefold().strip()
+    return unicodedata.normalize("NFKC", text).casefold().replace("\u0307", "").strip()
 
 
 # ---------------------------------------------------------------------------
@@ -121,6 +125,9 @@ def download_pdf(law: dict, delay: float = 1.5) -> bytes:
 # PDF text extraction (character-level to bypass font encoding issues)
 # ---------------------------------------------------------------------------
 def _extract_text_from_bytes(pdf_bytes: bytes) -> str:
+    if fitz is None:
+        raise RuntimeError("PyMuPDF not installed. Run: pip install pymupdf")
+
     with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
         tmp.write(pdf_bytes)
         tmp_path = Path(tmp.name)
@@ -179,6 +186,7 @@ def _split_into_articles(full_text: str) -> Iterator[tuple[int, str, str]]:
         title = _find_preceding_title(lines_before_madde)
         if not title or title.lower().startswith("madde"):
             title = _title_from_text(art_text)
+        title = _clean_article_title(title)
 
         yield art_num, title, art_text
 
@@ -199,9 +207,55 @@ def _title_from_text(art_text: str, max_chars: int = 90) -> str:
     return art_text[:min(end, max_chars)].strip()
 
 
-_TRAILING_HEADING_RE = re.compile(
-    r"(?:\s+(?:\d{1,3}|[IVXLCDM]{1,6}|[a-zçğıöşü])\.\s+[^.!?]+?)+\s*$"
+_TITLE_FOOTNOTE_RE = re.compile(r"(?<=[^\W\d_])\d{1,2}$", re.UNICODE)
+_INLINE_FOOTNOTE_RE = re.compile(r"(?<=[.!?…])\d{1,3}(?=\s)")
+_TRAILING_STRUCTURAL_HEADING_RE = re.compile(
+    r"\s+(?:[A-ZÇĞİÖŞÜ]+(?:NCİ|NCI|NCU|NCÜ|İNCİ|INCI|UNCU|ÜNCÜ)\s+)?"
+    r"(?:KİTAP|KISIM|BÖLÜM|AYIRIM)\b"
 )
+_TRAILING_SIDE_HEADING_START_RE = re.compile(
+    r"\s(?:\d{1,3}\.\s*|[IVXLCDM]{1,6}\s*[-.]\s*|[A-ZÇĞİÖŞÜa-zçğıöşü][).]\s*)"
+)
+
+
+def _ends_like_sentence(text: str) -> bool:
+    if not text:
+        return False
+    if text[-1] in ".!?…":
+        return True
+    return len(text) >= 2 and text[-1] == ")" and text[-2] in ".!?…"
+
+
+def _ends_like_clause(text: str) -> bool:
+    if not text:
+        return False
+    return text[-1].isalnum() or _ends_like_sentence(text)
+
+
+def _looks_like_heading_tail(text: str) -> bool:
+    words = re.findall(r"[0-9A-Za-zÇĞİÖŞÜçğıöşü]+", text)
+    return 2 <= len(words) <= 9 and len(text) <= 160
+
+
+def _looks_like_list_continuation(candidate: str, tail: str) -> bool:
+    marker = r"(?:\d{1,3}\.|[a-zçğıöşü]\))"
+    if not re.match(rf"^{marker}", tail.strip()):
+        return False
+    return bool(re.search(rf"[:;]\s*{marker}", candidate))
+
+
+def _strip_trailing_side_heading(text: str) -> str:
+    for match in reversed(list(_TRAILING_SIDE_HEADING_START_RE.finditer(text))):
+        candidate = text[: match.start()].strip()
+        tail = text[match.start():].strip()
+        if (
+            len(candidate) >= 20
+            and _ends_like_sentence(candidate)
+            and _looks_like_heading_tail(tail)
+            and not _looks_like_list_continuation(candidate, tail)
+        ):
+            return candidate
+    return text
 
 
 def _strip_trailing_heading(text: str) -> str:
@@ -211,12 +265,22 @@ def _strip_trailing_heading(text: str) -> str:
     end of the current article, e.g. '...açık veya örtülü olabilir.
     2. İkinci derecedeki noktalar'. This strips that trailing run.
     """
-    cleaned = _TRAILING_HEADING_RE.sub("", text).strip()
-    if cleaned == text:
-        return text
-    if len(cleaned) >= 20 and cleaned[-1] in ".!?…":
-        return cleaned
-    return text
+    cleaned = _INLINE_FOOTNOTE_RE.sub("", text.strip())
+    for match in _TRAILING_STRUCTURAL_HEADING_RE.finditer(cleaned):
+        candidate = cleaned[: match.start()].strip()
+        if len(candidate) >= 20 and _ends_like_clause(candidate):
+            cleaned = candidate
+            break
+    return _strip_trailing_side_heading(cleaned)
+
+
+def _clean_article_title(title: str) -> str:
+    """Normalise a PDF-derived article side heading."""
+    cleaned = re.sub(r"\s+", " ", title).strip(" -–")
+    # mevzuat PDFs sometimes attach footnote numbers to side headings:
+    # "geri verilmesi2" -> "geri verilmesi".
+    cleaned = _TITLE_FOOTNOTE_RE.sub("", cleaned).strip()
+    return cleaned
 
 
 def _clean_article_text(raw: str) -> str:
@@ -393,14 +457,14 @@ def _make_passage(law: dict, art_num: int, title: str, art_text: str) -> dict:
     num_str = str(art_num).zfill(4)
     passage_id = f"ART-{law['code']}-{num_str}"
 
-    title_display = title or f"Madde {art_num}"
+    title_display = _clean_article_title(title) or f"Madde {art_num}"
     full_title = f"{law['name']} m. {art_num} — {title_display}"
     text = f"{full_title}\n\n{art_text}"
     snippet = art_text[:400]
 
     source_url = _pdf_url(law)
 
-    match_terms = _make_match_terms(law, art_num, title)
+    match_terms = _make_match_terms(law, art_num, title_display)
 
     return {
         "passage_id": passage_id,

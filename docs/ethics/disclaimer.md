@@ -12,7 +12,7 @@ Turkish attorney.
 ## What the system tries to do
 
 - Retrieve the most relevant passages from a corpus of Turkish legal
-  QA/explanation entries.
+  QA/explanation entries and scraped article-level statute passages.
 - Generate a short Turkish answer that cites the retrieved passages by
   number (`[1]`, `[2]`, ...) and refuses or qualifies when context is
   insufficient.
@@ -27,16 +27,20 @@ Turkish attorney.
   specific situation. Any output that does so is flagged as
   legal-advice risk.
 - It does not guarantee that the underlying corpus is complete or
-  up-to-date. The corpus consists of QA/explanation entries rather than
-  official statute text, and may diverge from current statutes or case
-  law.
+  up-to-date. The corpus mixes QA/explanation entries with statute text
+  extracted from public mevzuat.gov.tr PDFs; PDF extraction artifacts,
+  missing laws, amendments, and case law gaps can still affect answers.
 - It does not store user queries or train on them.
 
 ## Data sources
 
-- Primary corpus: `OrionCAF/turkish_law_qa_dataset` from Hugging Face
-  (Apache-2.0 license at time of snapshot). See
-  `data/processed/preprocessing_report.md` for the snapshot date and
+- Primary QA corpus: `OrionCAF/turkish_law_qa_dataset` from Hugging Face
+  (Apache-2.0 license at time of snapshot).
+- Statute corpus: scraped article-level passages in
+  `data/curated/law_articles.jsonl`, generated from public
+  mevzuat.gov.tr law PDFs for the laws listed in
+  `scripts/scrape_mevzuat.py`.
+- See `data/processed/preprocessing_report.md` for the snapshot date and
   cleaning statistics applied at build time.
 
 ## Limitations users should know

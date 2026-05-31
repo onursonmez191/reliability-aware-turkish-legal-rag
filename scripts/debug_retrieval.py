@@ -16,21 +16,44 @@ from rag_turkish_law.retrieval.query_expansion import expand_retrieval_queries  
 from rag_turkish_law.retrieval.search import retrieve  # noqa: E402
 
 
-LEGAL_TERMS = (
-    "hayvan bulunduran",
-    "hayvanın verdiği zarar",
-    "hayvanin verdigi zarar",
-    "kusursuz sorumluluk",
-    "tazminat",
-    "sahipsiz hayvan",
-    "belediye sorumluluğu",
-    "köpek",
-    "kopek",
-)
+DEBUG_STOP_WORDS = {
+    "acaba", "ama", "ancak", "bana", "beni", "benim", "biri", "birine",
+    "davası", "davasi", "hakları", "hakkı", "hakkında", "hakkinda", "hangi",
+    "hukuku", "için", "icin", "kadar", "kanunu", "karşı", "karsi", "kimden",
+    "medeni", "miyim", "mısın", "musun", "müdür", "nasıl", "nasil", "neden",
+    "nedir", "olur", "olarak", "saklı", "sonra", "şart", "şartlarda", "türk",
+    "turk", "veya", "yaparım", "yapmalıyım",
+}
 
 
 def _norm(text: str) -> str:
     return text.casefold()
+
+
+def _debug_terms(question: str, expanded_queries: list[str], limit: int = 40) -> tuple[str, ...]:
+    terms: list[str] = []
+
+    def add(term: str) -> None:
+        term = _norm(term).strip(" .,:;!?()[]{}\"'")
+        if term and term not in terms:
+            terms.append(term)
+
+    for query in expanded_queries[1:]:
+        words = [
+            w for w in query.split()
+            if len(w) >= 4 and _norm(w).strip(" .,:;!?()[]{}\"'") not in DEBUG_STOP_WORDS
+        ]
+        if 2 <= len(words) <= 8:
+            add(" ".join(words))
+        for word in words:
+            add(word)
+
+    for word in question.split():
+        cleaned = _norm(word).strip(" .,:;!?()[]{}\"'")
+        if len(cleaned) >= 5 and cleaned not in DEBUG_STOP_WORDS:
+            add(cleaned)
+
+    return tuple(terms[:limit])
 
 
 def _load_jsonl(path: Path) -> list[dict]:
@@ -84,8 +107,10 @@ def main() -> None:
     print()
 
     print("CORPUS TERM COVERAGE")
-    processed_hits = _term_hits(passages, LEGAL_TERMS)
-    curated_hits = _term_hits(curated, LEGAL_TERMS)
+    debug_terms = _debug_terms(args.question, expanded)
+    print(f"- target terms: {', '.join(debug_terms) if debug_terms else '(none)'}")
+    processed_hits = _term_hits(passages, debug_terms)
+    curated_hits = _term_hits(curated, debug_terms)
     print(f"- processed passages with target terms: {len(processed_hits)} / {len(passages)}")
     for pid, title, matched in processed_hits[: args.coverage_limit]:
         print(f"  - {pid}: {title} | terms={matched}")
@@ -106,7 +131,7 @@ def main() -> None:
     print("TOP HITS")
     for i, hit in enumerate(hits, 1):
         blob = _norm(f"{hit.title} {hit.snippet} {hit.text}")
-        matched = [term for term in LEGAL_TERMS if _norm(term) in blob]
+        matched = [term for term in debug_terms if _norm(term) in blob]
         print(f"{i}. {hit.passage_id} score={hit.score:.4f} tag={hit.tag or '-'}")
         print(f"   title={hit.title}")
         print(f"   matched_terms={matched or []}")

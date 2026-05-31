@@ -3,6 +3,7 @@
 CS 455 LLM course project. A Turkish legal question-answering RAG system with:
 
 - corpus preparation from the public `OrionCAF/turkish_law_qa_dataset`
+  plus scraped article-level statute passages under `data/curated/`
 - multilingual sentence embeddings + a FAISS index
 - source-grounded answer generation through a local Ollama server (default) or the Hugging Face Inference API
 - a verifier layer that labels each claim as `supported / partial / unsupported / insufficient / risk / error`
@@ -30,6 +31,8 @@ evaluation/
   results/                   Metric JSONs and ablation outputs
 scripts/
   build_index.py             load → clean → embed → FAISS
+  scrape_mevzuat.py          scrape article-level statute passages from mevzuat.gov.tr PDFs
+  normalize_law_articles.py  clean committed statute JSONL metadata after scraper fixes
   serve.py                   FastAPI + static React UI
   run_eval.py                Retrieval metrics and ablations
 src/rag_turkish_law/
@@ -114,8 +117,18 @@ python scripts/build_index.py --limit 200
 
 Output goes to `data/processed/`. Re-run when you change the cleaning
 rules, the embedding model, or the corpus. The default config indexes the
-OrionCAF QA corpus plus article-level passages for TBK, TMK, İş Kanunu, and
-TCK so the manual eval set can be reproduced with the normal build command.
+OrionCAF QA corpus plus every JSONL file in `data/curated/`, including the
+scraped article-level statute corpus in `data/curated/law_articles.jsonl`
+(15 laws, 5492 articles). The older Hugging Face statute loader is disabled
+by default to avoid duplicate statute rows.
+
+If the statute scraper logic changes but you do not need to download the PDFs
+again, normalize the checked-in JSONL and then rebuild:
+
+```bash
+python scripts/normalize_law_articles.py
+python scripts/build_index.py
+```
 
 ## Run the demo
 
@@ -173,6 +186,11 @@ dataset itself. Final reported numbers should include a manually written set
 with paraphrased, ambiguous, unsupported, and legal-advice-risk questions.
 The tracked starter set is [evaluation/annotations/manual_eval.jsonl](evaluation/annotations/manual_eval.jsonl).
 
+Manual retrieval metrics are strict passage-id diagnostics when a
+`gold_passage_id` is present. Missing the exact gold article can still leave
+the system with a useful on-topic QA passage, so treat those numbers as a
+retrieval debugging signal rather than as final answer correctness.
+
 The rerank ablation retrieves a larger candidate pool first and then applies
 the cross-encoder reranker, so `--ablation rerank` is a real off/on comparison.
 
@@ -183,7 +201,7 @@ relevance.
 
 For known corpus gaps, the app can load small curated legal passages from
 `data/curated/legal_sources.jsonl`. These are targeted source-coverage patches,
-not a replacement for the main OrionCAF corpus. `scripts/debug_retrieval.py`
+not a replacement for the main OrionCAF/statute corpus. `scripts/debug_retrieval.py`
 prints the expanded retrieval queries, target-term coverage, top-k hits, and
 confidence labels for one question.
 
@@ -217,7 +235,7 @@ at a different file. Common knobs:
 - `models.available` — UI allowlist for selectable Ollama models
 - `models.default` — model selected by default in the UI
 - `models.keep_alive` — how long Ollama keeps a loaded model resident
-- `data.statutes.include_law_numbers` — primary-law coverage included in the index
+- `data.statutes.enabled` — legacy HF statute loader, disabled by default because scraped statutes load from `data/curated/`
 - `data.min_answer_chars` / `data.heldout_size` — preprocessing thresholds
 
 ## Notes on safety
