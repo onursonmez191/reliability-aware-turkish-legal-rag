@@ -81,8 +81,14 @@ LABOR_TRIGGERS = (
     "ihbar",
     "haksız çıkarma",
     "haksiz cikarma",
+    "haksız fesih",
+    "haksiz fesih",
     "işten çıkarıldım",
     "isten cikarildim",
+    "çıkarıldığım",
+    "cikarildigim",
+    "çıkarılma",
+    "cikarilma",
     "fazla mesai",
     "yıllık izin",
     "yillik izin",
@@ -159,6 +165,18 @@ FAMILY_INHERITANCE_TRIGGERS = (
     "babam",
 )
 
+# Extra expansions fired only when BOTH inheritance AND property signals fire.
+# These cover procedural steps specific to immovable-property inheritance.
+INHERITANCE_PROPERTY_EXPANSIONS = (
+    "tapu intikali mirasçılar tescil tapu müdürlüğü",
+    "miras intikali tapu sicili müdürlüğü",
+    "elbirliği mülkiyeti paylı mülkiyete dönüşüm",
+    "ortaklığın giderilmesi davası izale-i şuyu mahkeme",
+    "miras bırakanın taşınmazı mirasçılara tescil",
+    "tereke intikali tescil tapu müdürlüğü",
+    "mirasçıların tapuda tescil işlemi",
+)
+
 
 _TR_ASCII = str.maketrans("çğışöüÇĞİŞÖÜ", "cgisouCGISOu")
 
@@ -197,6 +215,8 @@ def expand_retrieval_queries(query: str) -> list[str]:
     has_family_signal = any(term in normalized for term in FAMILY_INHERITANCE_TRIGGERS)
     if has_inheritance_signal or (has_property_signal and has_family_signal):
         queries.extend(INHERITANCE_EXPANSIONS)
+    if (has_inheritance_signal or has_family_signal) and has_property_signal:
+        queries.extend(INHERITANCE_PROPERTY_EXPANSIONS)
 
     seen: set[str] = set()
     unique: list[str] = []
