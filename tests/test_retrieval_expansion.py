@@ -147,8 +147,24 @@ def test_haciz_query_no_inheritance_expansion():
 
 def test_labor_wrongful_termination_expands():
     queries = expand_retrieval_queries("İşten haksız yere çıkarıldığımı düşünüyorum — ne yapabilirim?")
+    assert any("haksız fesih" in q for q in queries)
     assert any("kıdem tazminatı" in q or "iş güvencesi" in q for q in queries)
     assert any("fesih" in q for q in queries)
+
+
+def test_labor_retrieve_filters_non_labor_contract_hits(monkeypatch):
+    def fake_retrieve_single(query, _k):
+        return [
+            hit("KIRA_FESIH", 0.95, "belirsiz süreli kira sözleşmesi fesih bildirimi"),
+            hit("LABOR_FESIH", 0.88, "işçi haksız fesih kıdem tazminatı işe iade"),
+        ]
+
+    monkeypatch.setattr(search, "_retrieve_single", fake_retrieve_single)
+    monkeypatch.setattr(_bm25_module, "bm25_retrieve", _no_bm25)
+
+    hits = search.retrieve("İşten haksız yere çıkarıldığımı düşünüyorum — ne yapabilirim?", k=5)
+
+    assert [h.passage_id for h in hits] == ["LABOR_FESIH"]
 
 
 def test_animal_dog_bite_expands_to_liability_terms():

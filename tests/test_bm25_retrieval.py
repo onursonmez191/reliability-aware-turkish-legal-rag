@@ -264,3 +264,51 @@ def test_hybrid_retrieve_bm25_promotes_passage_over_faiss_only(monkeypatch):
     # BM25 cap (0.82) > raw FAISS score (0.80), so STRONG-BM25-HIT should rank #1
     assert pids[0] == "STRONG-BM25-HIT", f"Expected STRONG-BM25-HIT first, got: {pids}"
     assert hits[0].score == pytest.approx(0.82)
+
+
+def test_hybrid_retrieve_uses_rrf_not_raw_display_score(monkeypatch):
+    """A BM25-only exact hit can outrank a higher-score FAISS-only fuzzy hit.
+
+    This catches regressions where hybrid retrieval computes BM25 candidates but
+    still sorts the final list only by FAISS/capped display score.
+    """
+
+    def fake_retrieve_single(query, _k):
+        return [_make_hit("FAISS-ONLY", 0.95)]
+
+    def fake_bm25_retrieve(queries, k):
+        return {"BM25-ONLY": 1.0}
+
+    meta_rows = [
+        {
+            "passage_id": "FAISS-ONLY",
+            "text": "dense fuzzy hit",
+            "snippet": "dense fuzzy hit",
+            "title": "Dense Fuzzy",
+            "tag": "test",
+            "source_dataset": "test",
+        },
+        {
+            "passage_id": "BM25-ONLY",
+            "text": "tapu intikali mirasçılar tescil",
+            "snippet": "tapu intikali mirasçılar tescil",
+            "title": "Tapu İntikali",
+            "tag": "Statute",
+            "source_dataset": "test",
+        },
+    ]
+
+    import faiss as _faiss
+    import numpy as np
+
+    dummy_index = _faiss.IndexFlatIP(4)
+    dummy_index.add(np.zeros((2, 4), dtype=np.float32))
+
+    monkeypatch.setattr(search, "_retrieve_single", fake_retrieve_single)
+    monkeypatch.setattr(search, "_load_index_and_meta", lambda: (dummy_index, meta_rows))
+    monkeypatch.setattr(_bm25_module, "bm25_retrieve", fake_bm25_retrieve)
+
+    hits = search.retrieve("tapu intikali", k=2)
+
+    assert [h.passage_id for h in hits] == ["BM25-ONLY", "FAISS-ONLY"]
+    assert hits[0].score == pytest.approx(0.82)

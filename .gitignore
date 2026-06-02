@@ -3,6 +3,7 @@
 # Python and local environments
 __pycache__/
 *.py[cod]
+*.log
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/

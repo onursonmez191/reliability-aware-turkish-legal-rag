@@ -96,6 +96,9 @@ LABOR_TRIGGERS = (
 )
 
 LABOR_EXPANSIONS = (
+    "haksız fesih işe iade davası kıdem tazminatı",
+    "işten çıkarılan işçi kıdem ihbar tazminatı işe iade",
+    "işverenin haksız feshi işçi hakları",
     "iş sözleşmesi feshi bildirim süresi",
     "belirsiz süreli iş sözleşmesi fesih",
     "işçi hakları iş kanunu 4857",

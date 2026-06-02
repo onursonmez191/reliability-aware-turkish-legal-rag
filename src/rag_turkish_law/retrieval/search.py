@@ -17,6 +17,53 @@ from .index import load_index, load_meta
 from .query_expansion import expand_retrieval_queries
 
 
+_TR_ASCII = str.maketrans("çğışöüÇĞİŞÖÜ", "cgisouCGISOu")
+
+_LABOR_QUERY_TERMS = (
+    "işten",
+    "isten",
+    "işçi",
+    "isci",
+    "işveren",
+    "isveren",
+    "iş sözleşmesi",
+    "is sozlesmesi",
+    "işe iade",
+    "ise iade",
+    "kıdem",
+    "kidem",
+    "ihbar",
+    "haksız çıkar",
+    "haksiz cikar",
+    "haksız fesih",
+    "haksiz fesih",
+)
+
+_LABOR_HIT_TERMS = (
+    "iş kanunu",
+    "is kanunu",
+    "iş mahkemeleri",
+    "is mahkemeleri",
+    "işçi",
+    "isci",
+    "işveren",
+    "isveren",
+    "iş sözleşmesi",
+    "is sozlesmesi",
+    "işe iade",
+    "ise iade",
+    "iş güvencesi",
+    "is guvencesi",
+    "kıdem",
+    "kidem",
+    "ihbar tazminatı",
+    "ihbar tazminati",
+    "sendika",
+    "4857",
+    "7036",
+)
+
+
 @dataclass
 class RetrievedPassage:
     passage_id: str
@@ -103,13 +150,16 @@ def retrieve(query: str, k: int | None = None) -> list[RetrievedPassage]:
     bm25_enabled = bm25_cfg.get("enabled", True)
     bm25_candidate_k = bm25_cfg.get("candidate_k", 30)
     rrf_k = bm25_cfg.get("rrf_k", 60)
-    # BM25-only hits are scored in [0, bm25_score_cap]; stays below strong FAISS hits
-    # but can exceed the confidence threshold when keyword evidence is strong.
+    # BM25-derived display scores stay in [0, bm25_score_cap] so UI/confidence
+    # still see a bounded source score. Ranking is handled separately by RRF.
     bm25_score_cap = bm25_cfg.get("score_cap", 0.82)
 
     expanded_queries = expand_retrieval_queries(query)
     curated_matches = matching_curated_sources(query, expanded_queries)
     filter_terms = curated_context_filter_terms(curated_matches)
+    domain_filter_terms = _domain_filter_terms(query)
+    bm25_scores: dict[str, float] = {}
+    rank_scores: dict[str, float] = {}
 
     # ── FAISS retrieval ──────────────────────────────────────────────────────
     faiss_by_id: dict[str, RetrievedPassage] = {}
@@ -127,6 +177,14 @@ def retrieve(query: str, k: int | None = None) -> list[RetrievedPassage]:
             faiss_by_id[pid].score = min(
                 faiss_by_id[pid].score + min(0.03, 0.01 * (count - 1)), 0.99
             )
+    faiss_ranked_ids = [
+        pid
+        for pid, _hit in sorted(
+            faiss_by_id.items(),
+            key=lambda item: item[1].score,
+            reverse=True,
+        )
+    ]
 
     # ── BM25 retrieval ───────────────────────────────────────────────────────
     by_id: dict[str, RetrievedPassage]
@@ -135,8 +193,8 @@ def retrieve(query: str, k: int | None = None) -> list[RetrievedPassage]:
         bm25_scores = _bm25_module.bm25_retrieve(expanded_queries, bm25_candidate_k)
 
         if bm25_scores:
-            # For passages in BOTH retrievers: score = max(faiss_score, bm25_cap_score).
-            # BM25 evidence can lift a passage that FAISS underranked due to vocabulary mismatch.
+            # For passages in BOTH retrievers: display score = max(faiss, bm25 cap).
+            # Actual merged ranking below uses Reciprocal Rank Fusion.
             for pid, bm25_norm in bm25_scores.items():
                 bm25_cap_score = bm25_norm * bm25_score_cap
                 if pid in faiss_by_id:
@@ -157,9 +215,18 @@ def retrieve(query: str, k: int | None = None) -> list[RetrievedPassage]:
                             meta_by_id[pid], bm25_scores[pid] * bm25_score_cap
                         )
 
+            bm25_ranked_ids = list(bm25_scores.keys())
+            rank_scores = _reciprocal_rank_fusion(
+                [faiss_ranked_ids, bm25_ranked_ids],
+                rrf_k=rrf_k,
+            )
+
         by_id = faiss_by_id
     else:
         by_id = faiss_by_id
+
+    if not rank_scores:
+        rank_scores = {pid: hit.score for pid, hit in by_id.items()}
 
     # ── Filter and curated overlay (unchanged behaviour) ─────────────────────
     if filter_terms:
@@ -169,18 +236,48 @@ def retrieve(query: str, k: int | None = None) -> list[RetrievedPassage]:
             if _hit_has_any_term(hit, filter_terms)
         }
 
+    if domain_filter_terms:
+        by_id = {
+            pid: hit
+            for pid, hit in by_id.items()
+            if _hit_has_any_term(hit, domain_filter_terms)
+        }
+
     for row, score in curated_matches:
         hit = _row_to_passage(row, score)
         current = by_id.get(hit.passage_id)
         if current is None or hit.score > current.score:
             by_id[hit.passage_id] = hit
+        rank_scores[hit.passage_id] = max(
+            rank_scores.get(hit.passage_id, 0.0),
+            1.0 + hit.score,
+        )
 
-    return sorted(by_id.values(), key=lambda h: h.score, reverse=True)[:top_k]
+    return sorted(
+        by_id.values(),
+        key=lambda h: (
+            rank_scores.get(h.passage_id, 0.0),
+            bm25_scores.get(h.passage_id, 0.0),
+            h.score,
+        ),
+        reverse=True,
+    )[:top_k]
+
+
+def _norm(text: str) -> str:
+    return text.translate(_TR_ASCII).casefold()
+
+
+def _domain_filter_terms(query: str) -> tuple[str, ...]:
+    normalized = _norm(query)
+    if any(term in normalized for term in _LABOR_QUERY_TERMS):
+        return _LABOR_HIT_TERMS
+    return ()
 
 
 def _hit_has_any_term(hit: RetrievedPassage, terms: Sequence[str]) -> bool:
-    blob = f"{hit.title} {hit.snippet} {hit.text}".casefold()
-    return any(term in blob for term in terms)
+    blob = _norm(f"{hit.title} {hit.snippet} {hit.text}")
+    return any(_norm(term) in blob for term in terms)
 
 
 def retrieve_many(queries: Sequence[str], k: int | None = None) -> list[list[RetrievedPassage]]:
