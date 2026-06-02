@@ -14,6 +14,8 @@ if str(SCRIPT_DIR) not in sys.path:
 
 from scrape_mevzuat import (  # noqa: E402
     LAWS,
+    _article_number_label,
+    _article_status,
     _clean_article_title,
     _make_match_terms,
     _pdf_url,
@@ -40,6 +42,8 @@ def _law_from_row(row: dict[str, Any]) -> dict[str, str]:
         "number": number,
         "name": law_name,
         "tertip": "5",
+        "domain": str(row.get("domain", "uncategorized")),
+        "priority": row.get("priority"),
     }
 
 
@@ -65,22 +69,30 @@ def _article_body_from_row(row: dict[str, Any]) -> str:
 
 def normalize_row(row: dict[str, Any]) -> dict[str, Any]:
     law = _law_from_row(row)
-    art_num = int(row["article_number"])
+    art_num = row["article_number"]
+    article_label = _article_number_label(art_num)
     article_title = _clean_article_title(_article_title_from_row(row))
     if not article_title:
-        article_title = f"Madde {art_num}"
+        article_title = f"Madde {article_label}"
 
-    full_title = f"{law['name']} m. {art_num} — {article_title}"
+    title_prefix = f"{law['name']} {article_label}" if "madde" in article_label else f"{law['name']} m. {article_label}"
+    full_title = f"{title_prefix} — {article_title}"
     body = _article_body_from_row(row)
 
     row["title"] = full_title
     row["text"] = f"{full_title}\n\n{body}"
     row["snippet"] = body[:400]
     row["source_dataset"] = f"{law['number']} sayılı {law['name']}"
-    row["source_url"] = _pdf_url(law)
+    row["source_url"] = row.get("source_url") or _pdf_url(law)
     row["law_code"] = law["code"]
     row["law_number"] = law["number"]
+    row["domain"] = law.get("domain", row.get("domain", "uncategorized"))
+    row["priority"] = law.get("priority", row.get("priority"))
     row["article_title"] = article_title
+    row["article_status"] = _article_status(body)
+    row["indexable"] = row["article_status"] != "repealed"
+    row.setdefault("scraped_at", "")
+    row.setdefault("source_sha256", "")
     row["match_terms"] = _make_match_terms(law, art_num, article_title)
     return row
 

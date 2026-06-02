@@ -25,6 +25,7 @@ data/processed/*
 !data/processed/.gitkeep
 data/evaluation/*
 !data/evaluation/.gitkeep
+data/curated/*_report.json
 evaluation/results/*
 !evaluation/results/.gitkeep
 models/

@@ -21,6 +21,24 @@ from rag_turkish_law.retrieval.embed import embed_passages  # noqa: E402
 from rag_turkish_law.retrieval.index import build_index, save_index, save_meta  # noqa: E402
 
 
+def _load_curated_passages(curated_dir: Path) -> tuple[list[dict], int]:
+    curated: list[dict] = []
+    seen_ids: set[str] = set()
+    skipped_non_indexable = 0
+    for jsonl_path in sorted(curated_dir.glob("*.jsonl")):
+        for row in read_jsonl(jsonl_path):
+            if row.get("indexable") is False:
+                skipped_non_indexable += 1
+                continue
+            pid = row.get("passage_id", "")
+            if pid and pid in seen_ids:
+                continue
+            if pid:
+                seen_ids.add(pid)
+            curated.append(row)
+    return curated, skipped_non_indexable
+
+
 def _write_report(stats: dict, path: Path, *, corpus_size: int, heldout_size: int) -> None:
     lines = [
         "# Preprocessing Report",
@@ -74,19 +92,12 @@ def main() -> None:
         corpus.extend(statutes)
 
     curated_dir = Path(cfg.paths.get("curated_sources_file", "data/curated/legal_sources.jsonl")).parent
-    curated: list[dict] = []
-    seen_ids: set[str] = set()
-    for jsonl_path in sorted(curated_dir.glob("*.jsonl")):
-        for row in read_jsonl(jsonl_path):
-            pid = row.get("passage_id", "")
-            if pid and pid in seen_ids:
-                continue
-            if pid:
-                seen_ids.add(pid)
-            curated.append(row)
+    curated, skipped_non_indexable = _load_curated_passages(curated_dir)
     if curated:
         log.info("Adding %d curated passages from %s/", len(curated), curated_dir)
         corpus.extend(curated)
+    if skipped_non_indexable:
+        log.info("Skipped %d non-indexable curated passages", skipped_non_indexable)
 
     log.info("Writing %d corpus passages → %s", len(corpus), cfg.paths.passages_file)
     write_jsonl(corpus, cfg.paths.passages_file)

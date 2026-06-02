@@ -5,7 +5,12 @@ This rubric defines how to assign `expected_verdict` to a question in
 system *should* return for that question, given the current corpus
 (OrionCAF QA passages + scraped statute articles from `data/curated/law_articles.jsonl`:
 TBK 6098, TMK 4721, TCK 5237, İş K. 4857, TTK 6102, HMK 6100, CMK 5271,
-Anayasa 2709, Vergi/KDV/GVK, SGK, Kat Mülkiyeti, İYUK — 15 kanun, 5492 madde).
+Anayasa 2709, Vergi/KDV/GVK, SGK, Kat Mülkiyeti, İYUK, plus any
+domain-expansion laws scraped from `scripts/scrape_mevzuat.py`).
+
+The checked-in baseline before domain expansion was 15 laws / 5492 articles.
+Items targeting `ART-IIK-*`, `ART-TAPU-*`, `ART-TKHK-*`, and similar IDs assume
+the domain-focused scraper expansion has been run and the FAISS index rebuilt.
 
 > The verdict describes the reliability of the **answer the system should
 > produce**, not the difficulty of the question. Re-annotate whenever the
@@ -18,7 +23,7 @@ Anayasa 2709, Vergi/KDV/GVK, SGK, Kat Mülkiyeti, İYUK — 15 kanun, 5492 madde
 | **supported** | The topic is covered by the corpus and a correct answer's key claims are each directly backed by retrieved passages (a statute article or a QA passage). Single-topic, fully grounded. |
 | **partial** | The core is grounded, but (a) the question is multi-part and only some parts are covered, or (b) a safe answer must leave some sub-claims general/unstated (e.g. it grounds liability but declines a case-specific amount). |
 | **unsupported** | Relevant, on-topic passages are retrieved, but they do **not** actually back the answer's claims (the answer would contradict or go beyond what the passages say). |
-| **insufficient** | The corpus does not cover the topic at all (no relevant passages). The system should refuse rather than answer. Includes future/non-existent law, time-dependent values that are not captured in the static corpus, and laws not yet indexed (e.g. İcra-İflas Kanunu). |
+| **insufficient** | The corpus does not cover the topic at all (no relevant passages). The system should refuse rather than answer. Includes future/non-existent law, time-dependent values that are not captured in the static corpus, and laws not yet indexed. |
 | **risk** | A correct answer would still legitimately contain a case-specific legal-advice statement that trips the risk layer: a concrete money amount, an imperative action ("dava açın"), or absolute certainty ("kesinlikle"). |
 
 ## The `risk` decision (important, team-adjustable)

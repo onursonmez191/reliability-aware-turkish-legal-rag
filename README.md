@@ -122,6 +122,67 @@ scraped article-level statute corpus in `data/curated/law_articles.jsonl`
 (15 laws, 5492 articles). The older Hugging Face statute loader is disabled
 by default to avoid duplicate statute rows.
 
+The scraper catalog also contains a demo-focused expansion batch for
+enforcement, tapu/property, consumer, traffic, labor procedure, privacy,
+local-government/animal, and common procedure questions. To refresh the active
+statute JSONL from those domains:
+
+```bash
+python scripts/scrape_mevzuat.py \
+  --domains enforcement property consumer traffic labor privacy local_government procedure \
+  --replace-laws
+python scripts/normalize_law_articles.py
+python scripts/build_index.py
+```
+
+The scraper writes an audit report to
+`data/curated/law_articles_report.json`. Use `--dry-run` to preview target
+laws and candidate PDF URLs, and `--timeout 10` if the public mevzuat site is
+slow or unreachable. `--replace-laws` only replaces rows for laws that were
+successfully downloaded and parsed, so failed downloads do not delete existing
+law rows.
+
+For the current demo gap batch, the safer fallback is the public
+`muhammetakkurt/mevzuat-gov-dataset` cache, which is sourced from
+`mevzuat.gov.tr` and includes the target laws even when the live PDF endpoint is
+unreliable:
+
+```bash
+python scripts/import_hf_statutes.py \
+  --laws 2004 2644 3402 6502 2918 7036 6698 5199 5393 7201 \
+  --replace-laws
+python scripts/normalize_law_articles.py
+python scripts/build_index.py
+```
+
+If the public PDF endpoint is down, the same scraper can ingest plain text or
+saved HTML pages. Put local files under `data/raw/law_text/` using the law
+number as the filename, for example `data/raw/law_text/2004.html` or
+`data/raw/law_text/2644.txt`, then run:
+
+```bash
+python scripts/scrape_mevzuat.py \
+  --laws 2004 2644 3402 6502 2918 7036 6698 5199 5393 7201 \
+  --text-source-dir data/raw/law_text \
+  --no-pdf-fallback \
+  --replace-laws
+python scripts/normalize_law_articles.py
+python scripts/build_index.py
+```
+
+For better source auditing, use a JSONL manifest instead of only relying on
+filenames:
+
+```jsonl
+{"number": "2004", "path": "data/raw/law_text/2004.html", "source_url": "https://example.test/icra-ve-iflas-kanunu-2004"}
+{"number": "2644", "url": "https://example.test/tapu-kanunu-2644"}
+```
+
+Then pass `--text-source-manifest data/raw/law_text_sources.jsonl`. Prefer
+official, public, or institutionally mirrored statute text where possible; a
+private legal platform is fine for checking content manually, but it should not
+become the project's hard-coded bulk source.
+
 If the statute scraper logic changes but you do not need to download the PDFs
 again, normalize the checked-in JSONL and then rebuild:
 
