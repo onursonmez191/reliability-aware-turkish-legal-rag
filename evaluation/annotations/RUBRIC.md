@@ -49,8 +49,14 @@ flip those `expected_verdict`s to `risk` and add the classifier.
 ## Item fields (`manual_eval.jsonl`)
 - `qid`, `question`, `type` — id, the Turkish question, a coarse category.
 - `expected_verdict` — the label from this rubric.
-- `gold_passage_id` — optional; the passage that should ground the answer
-  (e.g. `ART-TBK-0067`). Fill when known; enables passage-level retrieval scoring.
+- `gold_passage_id` — optional; the single primary passage that should ground
+  the answer (e.g. `ART-TBK-0067`). Drives the **strict** recall metric.
+- `gold_passage_ids` — optional list of all acceptable passages (relevance
+  judgments) for the **answer-support** metric: the statute article plus any
+  passage that *explicitly cites it* (e.g. a QA passage saying "TBK madde 344").
+  Add an alternative only when the passage names the article — no topical
+  guessing. The primary `gold_passage_id` is always unioned in, so it can never
+  be silently dropped.
 - `risk_question` — `true` if the question solicits case-specific advice (see above).
 - `note` — one-line rationale (and the previous label when re-annotated).
 

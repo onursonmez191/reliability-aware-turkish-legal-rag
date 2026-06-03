@@ -247,10 +247,18 @@ dataset itself. Final reported numbers should include a manually written set
 with paraphrased, ambiguous, unsupported, and legal-advice-risk questions.
 The tracked starter set is [evaluation/annotations/manual_eval.jsonl](evaluation/annotations/manual_eval.jsonl).
 
-Manual retrieval metrics are strict passage-id diagnostics when a
-`gold_passage_id` is present. Missing the exact gold article can still leave
-the system with a useful on-topic QA passage, so treat those numbers as a
-retrieval debugging signal rather than as final answer correctness.
+Manual retrieval metrics report two distinct numbers side by side, because in
+a QA-dominant corpus a statute question is often answered by a QA passage that
+explicitly cites the article rather than by the annotated `ART-*` statute ID:
+
+- **strict** recall/MRR (`strict` block) — matches only the single annotated
+  `gold_passage_id` (statute/article citation precision).
+- **answer-support** recall/MRR (the primary `recall@k`, `gold_mode:
+  "answer_support_any"`) — matches any acceptable passage in `gold_passage_ids`,
+  i.e. the statute article *or* a passage that explicitly cites it.
+
+Report both and never conflate them. Both are still a retrieval signal, not
+final answer correctness.
 
 The rerank ablation retrieves a larger candidate pool first and then applies
 the cross-encoder reranker, so `--ablation rerank` is a real off/on comparison.

@@ -53,11 +53,20 @@ React UI → FastAPI backend → (retrieval → generation → verification).
 ## 3. Evaluation
 
 ### 3.1 Retrieval
-- Metrics: Recall@3, Recall@5, MRR.
+- Metrics: Recall@3, Recall@5, MRR — reported in two modes that must not be
+  conflated:
+  - **strict**: matches only the annotated `gold_passage_id` (statute/article
+    citation precision).
+  - **answer-support** (`gold_mode: "answer_support_any"`): matches any
+    acceptable passage in `gold_passage_ids` (the article or a passage that
+    explicitly cites it). Higher because the QA-dominant corpus often answers a
+    statute question without surfacing the exact `ART-*` ID.
 - Sets: generated held-out questions with `gold_passage_id`, plus the
   tracked manual/adversarial questions in
   `evaluation/annotations/manual_eval.jsonl`.
-- Results: *TBD — fill from `evaluation/results/retrieval_metrics.json`.*
+- Results (manual set, e5-base + hybrid BM25, n=36): strict recall@8 = 0.28,
+  answer-support recall@8 = 0.42, +reranker ablation = 0.47. Held-out remains a
+  seed/self-retrieval smoke test, not a generalization metric.
 
 ### 3.2 Answer quality (manual rubric)
 - Criteria: correctness, source_faithfulness, clarity, refusal_behavior,

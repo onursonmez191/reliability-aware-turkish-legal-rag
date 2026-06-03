@@ -42,20 +42,28 @@ def test_evaluate_retrieval_applies_reranker():
     assert on["mrr"] == 1.0
 
 
-def test_evaluate_retrieval_accepts_any_of_multiple_gold_ids():
+def test_evaluate_retrieval_accepts_answer_support_passage():
+    # statute gold missing from hits, but a QA passage that answers it is present
     items = [
-        {"qid": "Q1", "question": "Soru?", "gold_passage_ids": ["ART-TBK-0067", "CUR-TBK-067"]}
+        {
+            "qid": "Q1",
+            "question": "Soru?",
+            "gold_passage_id": "ART-TBK-0344",
+            "gold_passage_ids": ["ART-TBK-0344", "P-011459"],
+        }
     ]
 
     def retriever(_question: str, _k: int):
-        # exact gold missing, but an accepted duplicate is present
-        return [hit("CUR-TBK-067"), hit("noise")]
+        return [hit("P-011459"), hit("noise")]
 
     out = evaluate_retrieval(items, k=3, retriever=retriever)
 
     assert out["n_scored"] == 1
+    assert out["gold_mode"] == "answer_support_any"
+    # answer-support hit (P-011459 at rank 1)
     assert out["recall@3"] == 1.0
-    assert out["mrr"] == 1.0
+    # strict statute ID was NOT retrieved → strict recall is 0
+    assert out["strict"]["recall@3"] == 0.0
 
 
 def test_evaluate_retrieval_single_gold_still_works():
@@ -67,23 +75,28 @@ def test_evaluate_retrieval_single_gold_still_works():
     out = evaluate_retrieval(items, k=5, retriever=retriever)
     assert out["recall@5"] == 1.0
     assert out["mrr"] == 0.5  # gold at rank 2
+    # strict and answer-support agree when there is a single gold
+    assert out["strict"]["recall@5"] == 1.0
 
 
-def test_evaluate_retrieval_gold_ids_take_priority_over_single():
+def test_evaluate_retrieval_unions_both_gold_fields():
+    # The primary gold_passage_id must never be dropped when a list is present.
     items = [
         {
             "qid": "Q1",
             "question": "Soru?",
-            "gold_passage_id": "unused-when-list-present",
-            "gold_passage_ids": ["a", "b"],
+            "gold_passage_id": "primary",
+            "gold_passage_ids": ["alt"],
         }
     ]
 
+    # Only the primary (single) gold is retrieved; the list does not shadow it.
     def retriever(_question: str, _k: int):
-        return [hit("b")]
+        return [hit("primary")]
 
     out = evaluate_retrieval(items, k=3, retriever=retriever)
     assert out["recall@3"] == 1.0
+    assert out["strict"]["recall@3"] == 1.0
 
 
 def test_rerank_ablation_passes_real_rerank_options(monkeypatch):
