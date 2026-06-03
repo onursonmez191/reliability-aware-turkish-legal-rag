@@ -47,6 +47,7 @@ def _normalize_item(row: dict, *, idx: int, source: str) -> dict:
         "question": question,
         "type": row.get("type") or row.get("kind") or source,
         "gold_passage_id": row.get("gold_passage_id") or None,
+        "gold_passage_ids": row.get("gold_passage_ids") or None,
         "expected_verdict": row.get("expected_verdict") or row.get("gold_verdict"),
         "note": row.get("note", ""),
         "source": source,

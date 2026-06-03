@@ -12,19 +12,39 @@ Retriever = Callable[[str, int], list[RetrievedPassage]]
 Reranker = Callable[[str, Sequence[RetrievedPassage], int], list[RetrievedPassage]]
 
 
-def _recall_at_k(hits: Sequence[RetrievedPassage], gold_id: str, k: int) -> int:
-    return int(any(h.passage_id == gold_id for h in hits[:k]))
+def _gold_ids(item: dict) -> list[str]:
+    """Acceptable gold passage IDs for an item (relevance judgments).
+
+    Supports a list (`gold_passage_ids`) for items where several passages are
+    equally correct (e.g. a statute article and its curated duplicate, or two
+    articles that both answer the question). Falls back to the single
+    `gold_passage_id`. An item is "scored" if this returns a non-empty set.
+    """
+    ids = item.get("gold_passage_ids")
+    if isinstance(ids, (list, tuple)):
+        out = [str(i) for i in ids if i]
+        if out:
+            return out
+    single = item.get("gold_passage_id")
+    return [str(single)] if single else []
 
 
-def _rank(hits: Sequence[RetrievedPassage], gold_id: str) -> int | None:
+def _recall_at_k(hits: Sequence[RetrievedPassage], gold_ids: Sequence[str], k: int) -> int:
+    gold = set(gold_ids)
+    return int(any(h.passage_id in gold for h in hits[:k]))
+
+
+def _rank(hits: Sequence[RetrievedPassage], gold_ids: Sequence[str]) -> int | None:
+    """Best (smallest) rank among any acceptable gold id, 1-indexed."""
+    gold = set(gold_ids)
     for i, h in enumerate(hits, start=1):
-        if h.passage_id == gold_id:
+        if h.passage_id in gold:
             return i
     return None
 
 
-def _reciprocal_rank(hits: Sequence[RetrievedPassage], gold_id: str) -> float:
-    rank = _rank(hits, gold_id)
+def _reciprocal_rank(hits: Sequence[RetrievedPassage], gold_ids: Sequence[str]) -> float:
+    rank = _rank(hits, gold_ids)
     return 1.0 / rank if rank else 0.0
 
 
@@ -81,14 +101,15 @@ def evaluate_retrieval(
             retriever=retriever,
             reranker=reranker,
         )
-        gold = item.get("gold_passage_id")
+        gold = _gold_ids(item)
         row = {
             "qid": item.get("qid", ""),
             "question": item.get("question", ""),
             "source": item.get("source", ""),
             "type": item.get("type", ""),
             "expected_verdict": item.get("expected_verdict"),
-            "gold_passage_id": gold,
+            "gold_passage_id": item.get("gold_passage_id"),
+            "gold_passage_ids": gold or None,
             "top_ids": [h.passage_id for h in hits[:k]],
             "top_scores": [round(float(h.score), 4) for h in hits[:k]],
         }

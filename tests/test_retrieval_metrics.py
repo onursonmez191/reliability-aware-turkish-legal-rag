@@ -42,6 +42,50 @@ def test_evaluate_retrieval_applies_reranker():
     assert on["mrr"] == 1.0
 
 
+def test_evaluate_retrieval_accepts_any_of_multiple_gold_ids():
+    items = [
+        {"qid": "Q1", "question": "Soru?", "gold_passage_ids": ["ART-TBK-0067", "CUR-TBK-067"]}
+    ]
+
+    def retriever(_question: str, _k: int):
+        # exact gold missing, but an accepted duplicate is present
+        return [hit("CUR-TBK-067"), hit("noise")]
+
+    out = evaluate_retrieval(items, k=3, retriever=retriever)
+
+    assert out["n_scored"] == 1
+    assert out["recall@3"] == 1.0
+    assert out["mrr"] == 1.0
+
+
+def test_evaluate_retrieval_single_gold_still_works():
+    items = [{"qid": "Q1", "question": "Soru?", "gold_passage_id": "gold"}]
+
+    def retriever(_question: str, _k: int):
+        return [hit("bad"), hit("gold")]
+
+    out = evaluate_retrieval(items, k=5, retriever=retriever)
+    assert out["recall@5"] == 1.0
+    assert out["mrr"] == 0.5  # gold at rank 2
+
+
+def test_evaluate_retrieval_gold_ids_take_priority_over_single():
+    items = [
+        {
+            "qid": "Q1",
+            "question": "Soru?",
+            "gold_passage_id": "unused-when-list-present",
+            "gold_passage_ids": ["a", "b"],
+        }
+    ]
+
+    def retriever(_question: str, _k: int):
+        return [hit("b")]
+
+    out = evaluate_retrieval(items, k=3, retriever=retriever)
+    assert out["recall@3"] == 1.0
+
+
 def test_rerank_ablation_passes_real_rerank_options(monkeypatch):
     calls = []
 

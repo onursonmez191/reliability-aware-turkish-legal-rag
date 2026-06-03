@@ -34,6 +34,7 @@ def test_manual_eval_loader_normalizes_rows(tmp_path):
             "question": "Soru?",
             "type": "risk",
             "gold_passage_id": None,
+            "gold_passage_ids": None,
             "expected_verdict": "risk",
             "note": "note",
             "source": "manual",
