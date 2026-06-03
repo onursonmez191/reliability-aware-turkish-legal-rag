@@ -260,11 +260,12 @@ are too weak. This avoids presenting low-coverage answers as grounded legal
 answers, but it is still a heuristic: high similarity does not guarantee legal
 relevance.
 
-For known corpus gaps, the app can load small curated legal passages from
-`data/curated/legal_sources.jsonl`. These are targeted source-coverage patches,
-not a replacement for the main OrionCAF/statute corpus. `scripts/debug_retrieval.py`
-prints the expanded retrieval queries, target-term coverage, top-k hits, and
-confidence labels for one question.
+The active legal sources now come from the OrionCAF QA passages plus the
+article-level statute corpus in `data/curated/law_articles.jsonl`. Earlier
+hand-written source patches have been removed where the corresponding statute
+article is now available. `scripts/debug_retrieval.py` prints the expanded
+retrieval queries, target-term coverage, top-k hits, and confidence labels for
+one question.
 
 Use the notebooks in `notebooks/` for exploratory checks, and use
 `scripts/run_eval.py` for reproducible metrics once the evaluation set is

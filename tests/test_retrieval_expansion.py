@@ -79,13 +79,13 @@ def test_retrieve_boosts_hits_seen_across_expanded_queries(monkeypatch):
     assert hits[0].score > hits[1].score
 
 
-def test_retrieve_includes_curated_animal_source(monkeypatch):
+def test_retrieve_uses_article_level_animal_source(monkeypatch):
     monkeypatch.setattr(
         search,
         "_retrieve_single",
         lambda _query, _k: [
             hit("GENERIC", 0.83, "trafik kazası tazminat başvurusu"),
-            hit("LAW-6098-M67", 0.82, "hayvan bulunduran hayvanın verdiği zarar için sorumludur"),
+            hit("ART-TBK-0067", 0.90, "hayvan bulunduran hayvanın verdiği zarar için sorumludur"),
         ],
     )
     monkeypatch.setattr(_bm25_module, "bm25_retrieve", _no_bm25)
@@ -95,10 +95,8 @@ def test_retrieve_includes_curated_animal_source(monkeypatch):
         k=3,
     )
 
-    assert hits[0].passage_id == "CUR-TBK-067"
-    assert "Hayvan bulunduran" in hits[0].title
-    assert any(h.passage_id == "LAW-6098-M67" for h in hits)
-    assert all(h.passage_id != "GENERIC" for h in hits)
+    assert hits[0].passage_id == "ART-TBK-0067"
+    assert all(h.passage_id != "CUR-TBK-067" for h in hits)
 
 
 def test_non_animal_question_does_not_include_curated_animal_source(monkeypatch):
