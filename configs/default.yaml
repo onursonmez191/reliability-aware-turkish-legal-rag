@@ -33,10 +33,13 @@ retrieval:
     rrf_k: 60                # RRF smoothing constant (Cormack et al. 2009)
     score_cap: 0.82          # max score assigned to BM25-only hits
   rerank:
-    enabled: false
+    enabled: true
     model: BAAI/bge-reranker-v2-m3
-    candidate_k: 20
-    keep_top: 5
+    candidate_k: 20          # retrieve this many candidates, then rerank to top_k
+    keep_top: 8
+    retrieval_weight: 0.70   # preserve strong hybrid/legal-term matches
+    model_weight: 0.30       # cross-encoder signal for close ordering decisions
+    preserve_top_retrieval_score: 0.90
   confidence:
     enabled: true
     min_top_score: 0.75

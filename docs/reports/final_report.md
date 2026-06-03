@@ -28,8 +28,10 @@ React UI → FastAPI backend → (retrieval → generation → verification).
 - Embedding model: `intfloat/multilingual-e5-base` with the required
   `query: ` / `passage: ` prefixes.
 - Index: FAISS `IndexFlatIP` over L2-normalized vectors (cosine).
-- Optional reranker: cross-encoder, disabled by default; enabled in
-  ablation with a larger candidate pool before keeping the final top-k.
+- Reranker: cross-encoder enabled by default; it retrieves a larger candidate
+  pool before reranking down to the final top-k. The final score blends the
+  original hybrid retrieval score with the normalized cross-encoder score, so
+  strong legal-term matches are not silently dropped by reranking.
 - Confidence gate: refuses to generate when top retrieval scores are too
   weak, while still showing retrieved passages for inspection.
 

@@ -1,11 +1,13 @@
+from types import SimpleNamespace
+
 from rag_turkish_law.api import pipeline
 from rag_turkish_law.generation.generate import GeneratedAnswer
 from rag_turkish_law.retrieval.search import RetrievedPassage
 
 
-def make_hit(score: float) -> RetrievedPassage:
+def make_hit(score: float, passage_id: str = "P-1") -> RetrievedPassage:
     return RetrievedPassage(
-        passage_id="P-1",
+        passage_id=passage_id,
         text="weak source",
         snippet="weak source",
         title="Weak",
@@ -54,6 +56,42 @@ def test_llm_mode_passes_selected_model(monkeypatch):
 
     assert seen == {"question": "Soru?", "model": "gemma4:31b"}
     assert response.model == "gemma4:31b"
+
+
+def test_rerank_retrieves_candidate_pool_and_keeps_requested_top_k(monkeypatch):
+    seen = {}
+
+    def fake_retrieve(_question, k):
+        seen["retrieve_k"] = k
+        return [make_hit(0.9, f"P-{i}") for i in range(1, 5)]
+
+    def fake_rerank(_question, hits, keep_top=None):
+        seen["rerank_seen"] = len(hits)
+        seen["keep_top"] = keep_top
+        return list(hits)[:keep_top]
+
+    monkeypatch.setattr(pipeline, "retrieve", fake_retrieve)
+    monkeypatch.setattr(pipeline, "rerank", fake_rerank)
+    monkeypatch.setattr(
+        pipeline,
+        "assess_retrieval_confidence",
+        lambda _hits: SimpleNamespace(label="high"),
+    )
+    monkeypatch.setattr(
+        pipeline,
+        "generate_grounded",
+        lambda *_args, **_kwargs: GeneratedAnswer(
+            text="yanıt",
+            citations=[],
+            citation_to_passage_id={},
+            mode="rag",
+        ),
+    )
+
+    response = pipeline.run_pipeline("Soru?", mode="rag", k=2)
+
+    assert seen == {"retrieve_k": 20, "rerank_seen": 4, "keep_top": 2}
+    assert [s.id for s in response.sources] == ["P-1", "P-2"]
 
 
 def test_llm_stream_emits_chunks_and_final(monkeypatch):

@@ -295,8 +295,9 @@ at a different file. Common knobs:
 
 - `retrieval.embedding_model` — swap to `paraphrase-multilingual-MiniLM-L12-v2` for ablation
 - `retrieval.top_k` — default 8
-- `retrieval.rerank.enabled` — turn on cross-encoder reranking
-- `retrieval.rerank.candidate_k` — candidate pool size for rerank ablations
+- `retrieval.rerank.enabled` — cross-encoder reranking, enabled by default for better retrieval quality
+- `retrieval.rerank.candidate_k` — candidate pool size before reranking down to `top_k`
+- `retrieval.rerank.retrieval_weight` / `model_weight` — blended rerank weights; the original hybrid score keeps strong legal-term matches from being dropped by the cross-encoder
 - `retrieval.confidence.*` — low-confidence retrieval refusal thresholds
 - `generation.provider` — `ollama` (default) or `hf`
 - `generation.base_url` — Ollama endpoint (only used when `provider: ollama`)

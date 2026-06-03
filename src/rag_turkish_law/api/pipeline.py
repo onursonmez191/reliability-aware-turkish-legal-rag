@@ -39,6 +39,12 @@ def _event(name: str, data: dict) -> dict:
     return {"event": name, "data": data}
 
 
+def _retrieval_k(cfg, requested_k: int) -> int:
+    if cfg.retrieval.rerank.enabled:
+        return max(int(cfg.retrieval.rerank.get("candidate_k", requested_k)), requested_k)
+    return requested_k
+
+
 def run_pipeline(
     question: str,
     mode: str,
@@ -49,6 +55,7 @@ def run_pipeline(
     cfg = load_config()
     timings: list[StepTiming] = []
     verifier_model = verifier_model or model
+    retrieval_k = _retrieval_k(cfg, k)
 
     if mode == "llm":
         answer = _timed("generate", lambda: generate_llm_only(question, model=model), timings)
@@ -64,16 +71,13 @@ def run_pipeline(
             verifier_model=None,
         )
 
-    hits = _timed("retrieve", lambda: retrieve(question, k=k), timings)
+    hits = _timed("retrieve", lambda: retrieve(question, k=retrieval_k), timings)
 
     # Assess coverage on the bi-encoder retrieval scores. The cross-encoder
     # reranker emits scores on a different scale (0-1 relevance) that are not
     # comparable to the confidence thresholds, so it must not feed the gate —
     # rerank only reorders the passages retrieval already found.
     confidence = _timed("confidence", lambda: assess_retrieval_confidence(hits), timings)
-
-    if cfg.retrieval.rerank.enabled:
-        hits = _timed("rerank", lambda: rerank(question, hits), timings)
 
     if confidence.label == "low":
         answer = (
@@ -86,7 +90,7 @@ def run_pipeline(
                 mode="rag",
                 answer=answer,
                 llm_only=None,
-                sources=_passages_to_sources(hits),
+                sources=_passages_to_sources(hits[:k]),
                 verdict=None,
                 timings=timings,
                 model=model,
@@ -111,12 +115,15 @@ def run_pipeline(
             mode="verified",
             answer=answer,
             llm_only=None,
-            sources=_passages_to_sources(hits),
+            sources=_passages_to_sources(hits[:k]),
             verdict=verdict,
             timings=timings,
             model=model,
             verifier_model=verifier_model,
         )
+
+    if cfg.retrieval.rerank.enabled:
+        hits = _timed("rerank", lambda: rerank(question, hits, keep_top=k), timings)
 
     grounded = _timed(
         "generate",
@@ -175,6 +182,7 @@ def run_pipeline_stream(
     cfg = load_config()
     timings: list[StepTiming] = []
     verifier_model = verifier_model or model
+    retrieval_k = _retrieval_k(cfg, k)
 
     if mode == "llm":
         yield _event("step", {"id": "generate"})
@@ -201,21 +209,16 @@ def run_pipeline_stream(
 
     yield _event("step", {"id": "embed"})
     yield _event("step", {"id": "retrieve"})
-    hits = _timed("retrieve", lambda: retrieve(question, k=k), timings)
+    hits = _timed("retrieve", lambda: retrieve(question, k=retrieval_k), timings)
 
     # Coverage gate runs on the bi-encoder scores, before the cross-encoder
     # reranker rescales them (see run_pipeline for the rationale).
     confidence = _timed("confidence", lambda: assess_retrieval_confidence(hits), timings)
 
-    if cfg.retrieval.rerank.enabled:
-        yield _event("step", {"id": "rerank"})
-        hits = _timed("rerank", lambda: rerank(question, hits), timings)
-
-    sources = _passages_to_sources(hits)
-    yield _event("sources", {"sources": [s.model_dump() for s in sources]})
-
-    yield _event("step", {"id": "confidence"})
     if confidence.label == "low":
+        sources = _passages_to_sources(hits[:k])
+        yield _event("sources", {"sources": [s.model_dump() for s in sources]})
+        yield _event("step", {"id": "confidence"})
         answer = (
             "Mevcut kaynaklar bu soruyu yeterince kapsamıyor. "
             "Bu nedenle kaynaklara dayalı güvenilir bir yanıt üretemiyorum."
@@ -252,6 +255,14 @@ def run_pipeline_stream(
         yield _event("final", response.model_dump())
         return
 
+    if cfg.retrieval.rerank.enabled:
+        yield _event("step", {"id": "rerank"})
+        hits = _timed("rerank", lambda: rerank(question, hits, keep_top=k), timings)
+
+    sources = _passages_to_sources(hits)
+    yield _event("sources", {"sources": [s.model_dump() for s in sources]})
+
+    yield _event("step", {"id": "confidence"})
     yield _event("step", {"id": "generate"})
     t0 = time.perf_counter()
     chunks = []
