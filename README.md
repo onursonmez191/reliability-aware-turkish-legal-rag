@@ -48,20 +48,30 @@ tests/                       pytest sanity tests for the data, prompts, and veri
 
 ## Setup
 
+Use any Python 3.10+ interpreter. The project does not require pyenv, but the
+`python3` command must point to a new enough Python.
+
 ```bash
-python3 -m venv .venv                # Python 3.10+; 3.12 works
+python3 --version                    # must be 3.10+
+python3 -c "import sys; raise SystemExit('Python 3.10+ required') if sys.version_info < (3, 10) else None"
+python3 -m venv .venv
 . .venv/bin/activate                 # PowerShell: .\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-pip install -e .                    # makes `rag_turkish_law` importable
-cp .env.example .env                # optional, only needed for HF_API_TOKEN/RAG_CONFIG
+python -m pip install --upgrade pip setuptools wheel
+python -m pip install -r requirements.txt
+python -m pip install -e .           # makes `rag_turkish_law` importable
+cp .env.example .env                 # optional, only needed for HF_API_TOKEN/RAG_CONFIG
 ```
+
+If `python3 --version` shows Python 3.9 on macOS, install any newer Python
+distribution and replace `python3` above with that executable, for example
+`python3.12`.
 
 GPU is optional but recommended. Ollama uses Apple Silicon/Metal automatically
 on supported Macs. If you have an NVIDIA GPU with current drivers, install a
 matching PyTorch wheel for faster embedding/reranking work (e.g. CUDA 12.4):
 
 ```bash
-pip install --index-url https://download.pytorch.org/whl/cu124 torch
+python -m pip install --index-url https://download.pytorch.org/whl/cu124 torch
 ```
 
 ### LLM backend (default: local Ollama)
