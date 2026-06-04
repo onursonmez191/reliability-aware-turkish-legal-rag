@@ -53,7 +53,7 @@ Use any Python 3.10+ interpreter. The project does not require pyenv, but the
 
 ```bash
 python3 --version                    # must be 3.10+
-python3 -c "import sys; raise SystemExit('Python 3.10+ required') if sys.version_info < (3, 10) else None"
+python3 -c "import sys; sys.exit('Python 3.10+ required') if sys.version_info < (3, 10) else None"
 python3 -m venv .venv
 . .venv/bin/activate                 # PowerShell: .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip setuptools wheel
