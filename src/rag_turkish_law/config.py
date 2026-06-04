@@ -43,7 +43,7 @@ def _resolve_paths(cfg: dict, root: Path) -> dict:
 
 @lru_cache(maxsize=4)
 def load_config(path: str | None = None) -> _AttrDict:
-    config_path = Path(path or os.getenv("RAG_CONFIG", str(DEFAULT_CONFIG_PATH)))
+    config_path = Path(path or os.getenv("RAG_CONFIG") or DEFAULT_CONFIG_PATH)
     with config_path.open("r", encoding="utf-8") as f:
         raw = yaml.safe_load(f)
     raw = _resolve_paths(raw, REPO_ROOT)
