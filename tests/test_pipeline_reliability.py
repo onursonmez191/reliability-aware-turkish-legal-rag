@@ -3,6 +3,7 @@ from types import SimpleNamespace
 from rag_turkish_law.api import pipeline
 from rag_turkish_law.generation.generate import GeneratedAnswer
 from rag_turkish_law.retrieval.search import RetrievedPassage
+from rag_turkish_law.verification.verify import ClaimVerdict
 
 
 def make_hit(score: float, passage_id: str = "P-1") -> RetrievedPassage:
@@ -92,6 +93,40 @@ def test_rerank_retrieves_candidate_pool_and_keeps_requested_top_k(monkeypatch):
 
     assert seen == {"retrieve_k": 20, "rerank_seen": 4, "keep_top": 2}
     assert [s.id for s in response.sources] == ["P-1", "P-2"]
+
+
+def test_verified_mode_uses_selected_model_as_verifier(monkeypatch):
+    seen = {}
+
+    monkeypatch.setattr(pipeline, "retrieve", lambda _question, k: [make_hit(0.9)])
+    monkeypatch.setattr(pipeline, "rerank", lambda _question, hits, keep_top=None: list(hits)[:keep_top])
+    monkeypatch.setattr(
+        pipeline,
+        "assess_retrieval_confidence",
+        lambda _hits: SimpleNamespace(label="high"),
+    )
+    monkeypatch.setattr(
+        pipeline,
+        "generate_grounded",
+        lambda *_args, **_kwargs: GeneratedAnswer(
+            text="yanıt [1].",
+            citations=[1],
+            citation_to_passage_id={1: "P-1"},
+            mode="rag",
+        ),
+    )
+
+    def fake_verify(_answer, _passages, model=None):
+        seen["verifier_model"] = model
+        return [ClaimVerdict(text="yanıt", status="supported", source_ids=[1], cited=[1])]
+
+    monkeypatch.setattr(pipeline, "verify_answer", fake_verify)
+
+    response = pipeline.run_pipeline("Soru?", mode="verified", k=1, model="qwen2.5:7b-instruct")
+
+    assert response.model == "qwen2.5:7b-instruct"
+    assert response.verifier_model == "qwen2.5:7b-instruct"
+    assert seen == {"verifier_model": "qwen2.5:7b-instruct"}
 
 
 def test_llm_stream_emits_chunks_and_final(monkeypatch):

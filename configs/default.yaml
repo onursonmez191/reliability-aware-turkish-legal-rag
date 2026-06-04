@@ -16,7 +16,7 @@ data:
   heldout_size: 50
   seed: 42
   # HF statute loader disabled: scraped law_articles.jsonl (data/curated/)
-  # provides broader coverage (15 laws, 5492 articles) via the curated path.
+  # provides broader article-level statute coverage via the curated path.
   statutes:
     enabled: false
 
@@ -48,25 +48,28 @@ retrieval:
 generation:
   provider: ollama  # ollama | hf
   base_url: http://127.0.0.1:11434/v1
-  hf_model: qwen2.5:7b-instruct
+  hf_model: qwen3.5:9b
   max_new_tokens: 512
   temperature: 0.2
   timeout_s: 180
 
 verification:
-  hf_model: qwen2.5:7b-instruct
+  hf_model: qwen3.5:9b
   max_new_tokens: 768
   temperature: 0.0
 
 models:
-  default: qwen2.5:7b-instruct
-  keep_alive: 10m
+  default: qwen3.5:9b
+  keep_alive: 2m
   load_timeout_s: 600
   unload_timeout_s: 30
   available:
+    - name: qwen3.5:9b
+      label: Qwen 3.5 9B
+      note: compact default model
     - name: qwen2.5:7b-instruct
       label: Qwen 2.5 7B
-      note: lightweight baseline
+      note: low-resource fallback
     - name: qwen3.6:27b
       label: Qwen 3.6 27B
       note: dense reasoning model

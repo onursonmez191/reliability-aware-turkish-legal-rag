@@ -1,8 +1,9 @@
-"""Ollama model allowlist and runtime controls for the demo API."""
+"""Ollama model discovery and runtime controls for the demo API."""
 
 from __future__ import annotations
 
 import json
+import re
 import time
 from typing import Any
 from urllib.error import HTTPError, URLError
@@ -12,7 +13,7 @@ from ..config import load_config
 
 
 class ModelConfigError(ValueError):
-    """Raised when the UI asks for a model outside the configured allowlist."""
+    """Raised when the UI asks for a model that Ollama cannot serve."""
 
 
 class OllamaRuntimeError(RuntimeError):
@@ -91,21 +92,54 @@ def _configured_options() -> list[dict]:
     return options
 
 
-def allowed_model_names() -> set[str]:
+def _configured_by_name() -> dict[str, dict]:
+    return {option["name"]: option for option in _configured_options()}
+
+
+def _friendly_label(model_name: str) -> str:
+    stem = model_name.split(":", 1)[0]
+    tag = model_name.split(":", 1)[1] if ":" in model_name else ""
+    normalized_stem = re.sub(r"(?<=[A-Za-z])(?=\d)", " ", stem.replace("-", " ").replace("_", " "))
+    tokens = normalized_stem.split()
+    label = " ".join(token.capitalize() for token in tokens) or model_name
+    if tag:
+        tag_label = tag.replace("-", " ").replace("_", " ").upper()
+        label = f"{label} {tag_label}"
+    return label
+
+
+def configured_model_names() -> set[str]:
     return {m["name"] for m in _configured_options()}
 
 
 def default_model_name() -> str:
     cfg = load_config()
     default = str(_model_cfg().get("default") or cfg.generation.hf_model)
-    return default if default in allowed_model_names() else cfg.generation.hf_model
+    configured = configured_model_names()
+    if default in configured:
+        return default
+    try:
+        installed = _installed_models()
+    except OllamaRuntimeError:
+        installed = {}
+    if default in installed:
+        return default
+    if cfg.generation.hf_model in configured or cfg.generation.hf_model in installed:
+        return cfg.generation.hf_model
+    return next(iter(installed), cfg.generation.hf_model)
 
 
 def validate_model_name(model: str | None) -> str | None:
     if not model:
         return None
-    if model not in allowed_model_names():
-        raise ModelConfigError(f"Model is not configured for this demo: {model}")
+    if model in configured_model_names():
+        return model
+    try:
+        installed = _installed_models()
+    except OllamaRuntimeError as exc:
+        raise ModelConfigError(f"Cannot verify Ollama model {model!r}: {exc}") from exc
+    if model not in installed:
+        raise ModelConfigError(f"Model is not installed in Ollama: {model}")
     return model
 
 
@@ -147,6 +181,7 @@ def _keep_alive() -> str:
 
 
 def get_models_state() -> dict:
+    configured = _configured_by_name()
     try:
         installed = _installed_models()
         running_items = _running_models()
@@ -159,9 +194,24 @@ def get_models_state() -> dict:
         error = str(exc)
 
     running_by_name = {_runtime_name(item): item for item in running_items if _runtime_name(item)}
+    option_names = list(configured)
+    for name in sorted(installed):
+        if name not in configured:
+            option_names.append(name)
+    for name in sorted(running_by_name):
+        if name not in option_names:
+            option_names.append(name)
+
     options = []
-    for option in _configured_options():
-        name = option["name"]
+    for name in option_names:
+        option = configured.get(
+            name,
+            {
+                "name": name,
+                "label": _friendly_label(name),
+                "note": "installed Ollama model",
+            },
+        )
         installed_item = installed.get(name, {})
         running_item = running_by_name.get(name, {})
         options.append(
@@ -182,7 +232,7 @@ def get_models_state() -> dict:
         "ollama_status": status,
         "error": error,
         "models": options,
-        "running": [m for m in running_by_name if m in allowed_model_names()],
+        "running": list(running_by_name),
     }
 
 
@@ -198,7 +248,7 @@ def load_ollama_model(model: str, keep_alive: str | None = None) -> dict:
     model = validate_model_name(model) or model
     keep_alive = keep_alive or _keep_alive()
     running = {_runtime_name(item) for item in _running_models()}
-    for other in sorted(running.intersection(allowed_model_names())):
+    for other in sorted(running):
         if other != model:
             _generate_keepalive(other, 0)
     _generate_keepalive(model, keep_alive)

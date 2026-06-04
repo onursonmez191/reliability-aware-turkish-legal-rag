@@ -54,7 +54,7 @@ def run_pipeline(
 ) -> AskResponse:
     cfg = load_config()
     timings: list[StepTiming] = []
-    verifier_model = verifier_model or model
+    verifier_model = verifier_model or model or cfg.verification.hf_model
     retrieval_k = _retrieval_k(cfg, k)
 
     if mode == "llm":
@@ -181,7 +181,7 @@ def run_pipeline_stream(
 ):
     cfg = load_config()
     timings: list[StepTiming] = []
-    verifier_model = verifier_model or model
+    verifier_model = verifier_model or model or cfg.verification.hf_model
     retrieval_k = _retrieval_k(cfg, k)
 
     if mode == "llm":

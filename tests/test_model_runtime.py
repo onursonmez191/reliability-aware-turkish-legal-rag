@@ -6,8 +6,10 @@ def test_model_state_marks_installed_and_running(monkeypatch):
         models,
         "_installed_models",
         lambda: {
+            "qwen3.5:9b": {"size": 6_500_000_000},
             "qwen2.5:7b-instruct": {"size": 4_700_000_000},
             "gemma4:31b": {"size": 20_000_000_000},
+            "extra-local:1b": {"size": 1_000_000_000},
         },
     )
     monkeypatch.setattr(
@@ -28,12 +30,14 @@ def test_model_state_marks_installed_and_running(monkeypatch):
 
     assert state["ollama_status"] == "online"
     assert state["running"] == ["gemma4:31b"]
+    assert by_name["qwen3.5:9b"]["installed"] is True
     assert by_name["qwen2.5:7b-instruct"]["installed"] is True
     assert by_name["gemma4:31b"]["running"] is True
     assert by_name["gemma4:31b"]["processor"] == "100% GPU"
+    assert by_name["extra-local:1b"]["note"] == "installed Ollama model"
 
 
-def test_load_model_unloads_other_configured_models(monkeypatch):
+def test_load_model_unloads_other_running_models(monkeypatch):
     calls = []
 
     monkeypatch.setattr(models, "_running_models", lambda: [{"name": "qwen3.6:27b"}])
@@ -85,10 +89,18 @@ def test_unload_model_reports_still_running(monkeypatch):
         raise AssertionError("unload should report a still-running model")
 
 
-def test_unknown_model_is_rejected():
+def test_unknown_model_is_rejected(monkeypatch):
+    monkeypatch.setattr(models, "_installed_models", lambda: {})
+
     try:
         models.validate_model_name("not-in-config:1b")
     except models.ModelConfigError as exc:
-        assert "not configured" in str(exc)
+        assert "not installed" in str(exc)
     else:
         raise AssertionError("unknown model should be rejected")
+
+
+def test_installed_dynamic_model_is_allowed(monkeypatch):
+    monkeypatch.setattr(models, "_installed_models", lambda: {"extra-local:1b": {}})
+
+    assert models.validate_model_name("extra-local:1b") == "extra-local:1b"

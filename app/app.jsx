@@ -108,7 +108,8 @@ const Header = ({ mode, setMode, k, setK }) => (
 // ---------- model runtime ----------
 
 const MODEL_FALLBACKS = [
-  { name: "qwen2.5:7b-instruct", label: "Qwen 2.5 7B", note: "lightweight baseline" },
+  { name: "qwen3.5:9b", label: "Qwen 3.5 9B", note: "compact default model" },
+  { name: "qwen2.5:7b-instruct", label: "Qwen 2.5 7B", note: "low-resource fallback" },
   { name: "qwen3.6:27b", label: "Qwen 3.6 27B", note: "dense reasoning model" },
   { name: "gemma4:31b", label: "Gemma 4 31B", note: "dense multilingual model" },
 ];
@@ -619,7 +620,7 @@ const Disclaimer = () => (
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "mode": "verified",
   "topK": 8,
-  "model": "qwen2.5:7b-instruct",
+  "model": "qwen3.5:9b",
   "showPipeline": true,
   "showComparison": true,
   "density": "comfortable"
@@ -659,7 +660,7 @@ function App() {
       setModelError(null);
       const options = modelOptionsFromState(state);
       if (!options.some((m) => m.name === selectedModel)) {
-        setSelectedModel(state.default || options[0]?.name || "qwen2.5:7b-instruct");
+        setSelectedModel(state.default || options[0]?.name || "qwen3.5:9b");
       }
     } catch (err) {
       setModelError(err.message || String(err));

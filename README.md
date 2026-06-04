@@ -17,7 +17,7 @@ CS 455 LLM course project. A Turkish legal question-answering RAG system with:
 
 ```text
 app/                         React prototype UI (CDN-loaded, no build step)
-configs/default.yaml         Embedding model, top-k, paths, HF model, etc.
+configs/default.yaml         Embedding, retrieval, generation, verification, and model settings
 data/
   raw/                       Reserved for raw snapshots
   processed/                 passages.jsonl, faiss.index, passage_meta.jsonl, heldout.jsonl
@@ -39,7 +39,7 @@ src/rag_turkish_law/
   config.py                  YAML config loader
   data/                      load, clean, passages, splits
   retrieval/                 embed (e5), index (FAISS), search, optional rerank
-  generation/                HF Inference client, Turkish prompts, citation parser
+  generation/                Ollama/HF client, Turkish prompts, citation parser
   verification/              claim splitter, per-claim verifier, risk patterns, aggregator
   evaluation/                eval set, retrieval metrics, rubric, verifier metrics, ablations
   api/                       Pydantic schemas, pipeline orchestration, FastAPI app
@@ -49,15 +49,16 @@ tests/                       pytest sanity tests for the data, prompts, and veri
 ## Setup
 
 ```bash
-python3.10 -m venv .venv               # Python 3.10 or 3.11 recommended
-. .venv/bin/activate                # PowerShell: .\.venv\Scripts\Activate.ps1
+python3 -m venv .venv                # Python 3.10+; 3.12 works
+. .venv/bin/activate                 # PowerShell: .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 pip install -e .                    # makes `rag_turkish_law` importable
 cp .env.example .env                # optional, only needed for HF_API_TOKEN/RAG_CONFIG
 ```
 
-GPU is optional but recommended. If you have an NVIDIA GPU with current
-drivers, install a matching PyTorch wheel (e.g. CUDA 12.4):
+GPU is optional but recommended. Ollama uses Apple Silicon/Metal automatically
+on supported Macs. If you have an NVIDIA GPU with current drivers, install a
+matching PyTorch wheel for faster embedding/reranking work (e.g. CUDA 12.4):
 
 ```bash
 pip install --index-url https://download.pytorch.org/whl/cu124 torch
@@ -82,7 +83,8 @@ On Linux, the official installer is usually the simplest option:
 curl -fsSL https://ollama.com/install.sh | sh
 ```
 
-Start Ollama and pull the default model:
+Start Ollama and pull the default model. If `ollama serve` says the address is
+already in use, Ollama is already running and you can leave it alone.
 
 ```bash
 ollama serve
@@ -91,14 +93,15 @@ ollama serve
 In another terminal:
 
 ```bash
-ollama pull qwen2.5:7b-instruct       # ~4.7 GB Q4_K_M, fits in 6 GB VRAM
+ollama pull qwen3.5:9b                # compact default model
 ```
 
-Smaller / faster alternatives (override in [configs/default.yaml](configs/default.yaml)
-under `generation.hf_model`):
+Other local alternatives (override in [configs/default.yaml](configs/default.yaml)
+under `generation.hf_model`, or choose from the Model Runtime card):
 
-- `qwen2.5:3b-instruct` — ~2 GB, ~2× faster, slightly weaker Turkish
-- `llama3.1:8b-instruct-q4_K_M` — comparable size, alternative family
+- `qwen2.5:7b-instruct` — lower-resource fallback if memory is tight
+- `qwen3.6:27b` — stronger but more memory-heavy reasoning model
+- `gemma4:31b` — larger multilingual model, also memory-heavy
 
 ### Falling back to Hugging Face Inference API
 
@@ -108,6 +111,8 @@ often slow for verifier-style multi-call workloads, so Ollama is the
 recommended default.
 
 ## Build the index
+
+Build the FAISS index once before running the demo:
 
 ```bash
 python scripts/build_index.py
@@ -119,8 +124,13 @@ Output goes to `data/processed/`. Re-run when you change the cleaning
 rules, the embedding model, or the corpus. The default config indexes the
 OrionCAF QA corpus plus every JSONL file in `data/curated/`, including the
 scraped article-level statute corpus in `data/curated/law_articles.jsonl`
-(15 laws, 5492 articles). The older Hugging Face statute loader is disabled
-by default to avoid duplicate statute rows.
+(currently 6,490 article rows). The older Hugging Face statute loader is
+disabled by default to avoid duplicate statute rows.
+
+### Refreshing statute sources
+
+Most demo runs do not need this section. Use it only when the team wants to
+refresh or expand the checked-in statute corpus.
 
 The scraper catalog also contains a demo-focused expansion batch for
 enforcement, tapu/property, consumer, traffic, labor procedure, privacy,
@@ -135,12 +145,11 @@ python scripts/normalize_law_articles.py
 python scripts/build_index.py
 ```
 
-The scraper writes an audit report to
-`data/curated/law_articles_report.json`. Use `--dry-run` to preview target
-laws and candidate PDF URLs, and `--timeout 10` if the public mevzuat site is
-slow or unreachable. `--replace-laws` only replaces rows for laws that were
-successfully downloaded and parsed, so failed downloads do not delete existing
-law rows.
+The scraper writes an audit report to `data/curated/law_articles_report.json`.
+Use `--dry-run` to preview target laws and candidate PDF URLs, and
+`--timeout 10` if the public mevzuat site is slow or unreachable.
+`--replace-laws` only replaces rows for laws that were successfully downloaded
+and parsed, so failed downloads do not delete existing law rows.
 
 For the current demo gap batch, the safer fallback is the public
 `muhammetakkurt/mevzuat-gov-dataset` cache, which is sourced from
@@ -183,8 +192,8 @@ official, public, or institutionally mirrored statute text where possible; a
 private legal platform is fine for checking content manually, but it should not
 become the project's hard-coded bulk source.
 
-If the statute scraper logic changes but you do not need to download the PDFs
-again, normalize the checked-in JSONL and then rebuild:
+If only the normalization logic changes and you do not need to download or
+import sources again, normalize the checked-in JSONL and then rebuild:
 
 ```bash
 python scripts/normalize_law_articles.py
@@ -202,9 +211,9 @@ The FastAPI app serves the React UI at `/` and exposes:
 
 - `POST /api/ask` — `{question, mode, k, model}` → answer + sources + verdict + timings
 - `POST /api/ask/stream` — same payload, Server-Sent Events with step, source, token, verdict, and final events
-- `GET /api/models` — configured Ollama models, installed/running state
-- `POST /api/models/load` — pre-load one configured model and unload other configured resident models
-- `POST /api/models/unload` — eject a configured model from Ollama memory
+- `GET /api/models` — installed Ollama models, configured labels, and running state
+- `POST /api/models/load` — pre-load one installed model and unload other resident models
+- `POST /api/models/unload` — eject an installed model from Ollama memory
 - `GET /api/health` — liveness check
 
 UI modes (selectable in the header tabs and the Tweaks panel):
@@ -213,10 +222,15 @@ UI modes (selectable in the header tabs and the Tweaks panel):
 - **B. RAG** — embed → retrieve → generate with citations.
 - **C. RAG + Verifier** — adds claim-level verification with a reliability banner.
 
-The Model Runtime card in the right column lets you switch between the
-allowlisted Ollama models and load/eject them manually. Loading a model through
-the UI unloads any other configured model that is already resident, which avoids
-keeping multiple large dense models in memory on a local laptop.
+The Model Runtime card in the right column discovers installed Ollama models
+dynamically and lets you load/eject them manually. Loading a model through the
+UI unloads any other resident Ollama model, which avoids keeping multiple large
+dense models in memory on a local laptop. The optional `models.available`
+entries in config provide nicer labels and notes for known demo models.
+Verified mode uses the selected model to verify its own answer by default, so
+the demo only keeps one LLM resident at a time. `verification.hf_model` is still
+used as the fallback when no model is selected, and `verifier_model` can be
+passed explicitly for controlled experiments.
 
 ## CLI sanity checks
 
@@ -301,9 +315,9 @@ at a different file. Common knobs:
 - `retrieval.confidence.*` — low-confidence retrieval refusal thresholds
 - `generation.provider` — `ollama` (default) or `hf`
 - `generation.base_url` — Ollama endpoint (only used when `provider: ollama`)
-- `generation.hf_model` — Ollama model tag (e.g. `qwen2.5:7b-instruct`) or HF model id depending on provider
-- `verification.hf_model` / `verification.temperature` / `verification.max_new_tokens` — verifier call settings
-- `models.available` — UI allowlist for selectable Ollama models
+- `generation.hf_model` — default model tag (e.g. `qwen3.5:9b`); the field name is legacy and is also used for Ollama
+- `verification.hf_model` / `verification.temperature` / `verification.max_new_tokens` — fallback verifier settings when no selected model or explicit verifier override is provided
+- `models.available` — optional labels/notes for known Ollama models; installed models are discovered dynamically
 - `models.default` — model selected by default in the UI
 - `models.keep_alive` — how long Ollama keeps a loaded model resident
 - `data.statutes.enabled` — legacy HF statute loader, disabled by default because scraped statutes load from `data/curated/`
